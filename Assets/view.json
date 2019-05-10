@@ -1,0 +1,6 @@
+{"elements":[
+	{"position":[0.0,0.0,5.0],"type":"camera"},
+	{"shape":{"shapeDescription":"cube","extent":[1.0,1.0,1.0]},"position":[0.0,0.0,0.0],"type":"element"},
+	{"shape":{"shapeDescription":"cube","extent":[1.0,1.0,1.0]},"position":[0.0,0.0,0.0],"type":"element"},
+	{"shape":{"shapeDescription":"cube","extent":[1.0,1.0,1.0]},"position":[0.0,0.0,0.0],"type":"element"}]
+}
