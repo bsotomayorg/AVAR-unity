@@ -8,6 +8,7 @@ Library/metadata/
 Library/metadata/*
 Library/StateCache/
 Library/*.log
+Scripts/*.cs.meta
 
 # Visual Studio Generated
 App/

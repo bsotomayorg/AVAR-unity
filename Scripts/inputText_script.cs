@@ -17,6 +17,7 @@ using System.Net.Sockets;
 
 public class inputText_script : MonoBehaviour {
     // attrs
+    public GameObject world;
     public InputField inputField;
     public Text inputText;
     public Text inputColoredText; // not used yet
@@ -43,24 +44,18 @@ public class inputText_script : MonoBehaviour {
     private RootElement view;
 
     List<GameObject> gameObjects;
-    float[] scaling = { 0.05f, 0.05f, 0.05f }; //{ 0.2f, 0.2f, 0.2f };
-    float[] positioning = { 0.1f, -0.1f, 0.1f }; //{ 1.0f, 1.0f, 1.0f };//{ 0.2f, -0.2f, 0.2f };
+    float[] scaling = { 0.05f, -0.05f, 0.05f }; //{ 0.2f, 0.2f, 0.2f };
+    float[] positioning = { 0.05f, -0.05f, 0.05f }; //{ 1.0f, 1.0f, 1.0f };//{ 0.2f, -0.2f, 0.2f };
     float[] shifting = { 0.00f, 0.00f, 1.00f };
     private static readonly float r = 1.0f;
 
-    /*void OnGUI(){
-
-        textFieldString = GUI.TextField(new Rect(500, 25, 100, 30), textFieldString, 25);
-        textAreaString = GUI.TextArea(new Rect(700, 25, 100, 100), textAreaString, 250);
-    }*/
-
     // Start is called before the first frame update
     void Start() {
-        
+        //world.transform.rotation = new Quaternion(0,0,(float)Math.PI,1);
         gameObjects = new List<GameObject>();
+       
         this.transform.position = new Vector3(-2.0f, -1.0f, -1.0f);
         
-
         alertText.text = "(Use CTRL + D to execute)";
 
         this.isHide = false;
@@ -79,47 +74,17 @@ public class inputText_script : MonoBehaviour {
 
         // debug
         Vector3 canvasPosition = GameObject.FindObjectOfType<Canvas>().transform.position;
-
-        /*double temp = Math.Sqrt(canvasPosition.x * canvasPosition.x + canvasPosition.y * canvasPosition.y + canvasPosition.z * canvasPosition.z);
-        canvasPosition.x = canvasPosition.x / ((float)temp);
-        canvasPosition.y = canvasPosition.y / ((float)temp);
-        canvasPosition.z = canvasPosition.z / ((float)temp);
-        */
-
         Vector3 canvasRotation = GameObject.FindObjectOfType<Canvas>().transform.eulerAngles;
-        // tetha  = alpha
-        // PI     = 180
-        // tetha = PI * alpha / 180
-        /*changeAlertMessage("(" +
-            canvasPosition.x.ToString("F2") + ", " +
-            canvasPosition.y.ToString("F2") + ", " +
-            canvasPosition.z.ToString("F2") + ") | (" +
-            Math.Cos(Math.PI * canvasRotation.x / 180.0f).ToString("F2") + ", " +
-            Math.Cos(Math.PI * canvasRotation.y / 180.0f).ToString("F2") + ", " +
-            Math.Cos(Math.PI * canvasRotation.z / 180.0f).ToString("F2") + ")", Color.yellow);
-        this.alertText.fontSize = 14;*/
 
-        this.shifting = new float[] {/*
-                (float)(r * Math.Sin(Math.PI * canvasRotation.y / 180.0f) * Math.Cos( (Math.PI * canvasRotation.z / 180.0f) )),
-                (float)(r * Math.Cos(Math.PI * canvasRotation.x / 180.0f) ) - 1.0f,
-                (float)(r * Math.Sin(Math.PI * canvasRotation.y / 180.0f) * Math.Sin( (Math.PI * canvasRotation.z / 180.0f) )) + 1.0f*/
-
+        this.shifting = new float[] {
                 r * ( canvasPosition.x + (float)( Math.Sin(Math.PI * canvasRotation.y / 180.0f) * Math.Cos( (Math.PI * canvasRotation.z / 180.0f) ))),
                 r * ( canvasPosition.y + (float)( Math.Sin(1 - (Math.PI * canvasRotation.x / 180.0f)) * Math.Cos( 1 - (Math.PI * canvasRotation.z / 180.0f) )) - 0.5f),
-                //(float)(r * Math.Sin(Math.PI * canvasRotation.y / 180.0f) * Math.Sin( (Math.PI * canvasRotation.x / 180.0f) )) + 1.0f
                 2.0f * ( canvasPosition.z + (float)( Math.Cos(Math.PI * canvasRotation.z / 180.0f) ) -1.0f )// - r
 
-            }; // 1.0f};
+            };
     }
 
     void manageInput(InputField input) {
-
-        /*if (Input.anyKeyDown)
-        {
-            string [] texts = this.getHighlightedText(input.text);
-            input.text = texts[0]; // plane
-            inputColoredText.text = texts[1]; // plane
-        }*/
 
         if (Input.GetKeyDown(KeyCode.LeftAlt)) {
             this.isHide = !this.isHide;
@@ -164,32 +129,19 @@ public class inputText_script : MonoBehaviour {
     [System.Serializable]
     public class RWElement
     {
-        public List<float> position;// = new List<float>();
-        public string type;// = "";
-        public Shape shape;// = new Shape();
+        public List<float> position;
+        public string type;
+        public Shape shape;
         public List<float> from = new List<float>();
         public List<float> to = new List<float>();
         public List<float> color = new List<float>();
     }
-    /*[System.Serializable]
-    public class RWEdge
-    {
-        public string type;
-        public List<float> from_position;
-        public List<float> to_position;
-        public List<float> color;
-    }*/
+
     [System.Serializable]
     public class Shape {
         public string shapeDescription;
         public List<float> extent;
         public List<float> color;
-        /*public Shape()
-        {
-            this.shapeDescription = "";
-            this.extent = new List<float>();
-            this.color = new List<float>();
-        }*/
     }
 
     private void changeAlertMessage(string msg, Color color)
@@ -223,13 +175,6 @@ public class inputText_script : MonoBehaviour {
             Debug.LogWarning("Json Content:");
 
             this.view = JsonUtility.FromJson<RootElement>(responseString);
-
-            // Get camera position (shifting)
-            /*this.shifting = new float[] {
-                GameObject.FindObjectOfType<Camera>().transform.position.x,
-                GameObject.FindObjectOfType<Camera>().transform.position.y,
-                1.0f+GameObject.FindObjectOfType<Camera>().transform.position.z };
-            */
 
             // GENERATE GEOMETRIES
             Debug.Log("NUMBER OF GEOMETRIES!!! " + this.view.elements.Length);
@@ -293,7 +238,9 @@ public class inputText_script : MonoBehaviour {
 
                     // add object to the list of objects
                     obj.tag = "WodenObj";
-                    gameObjects.Add(obj);
+                    obj.transform.parent = world.transform;
+                    //gameObjects.Add(obj);
+                    //world.AddComponent<GameObject>(obj);
 
                     Debug.Log(
                         "type :" + this.view.elements[i].type +
@@ -319,16 +266,8 @@ public class inputText_script : MonoBehaviour {
                     obj = new GameObject();
                     obj.tag = "WodenObj";
                     var lr = obj.AddComponent<LineRenderer>();
+                    lr.transform.parent = world.transform;
 
-                    /*this.view.elements[i].color[0] *= 255.0f;
-                    this.view.elements[i].color[1] *= 255.0f;
-                    this.view.elements[i].color[2] *= 255.0f;*/
-
-                    /*obj = new GameObject();
-                    obj.tag = "WodenObj";
-                    obj.AddComponent<LineRenderer>();
-                    LineRenderer lr = obj.GetComponent<LineRenderer>();*/
-                    //lr.tag = "WodenObj";
                     Color color = new Color(
                         this.view.elements[i].color[0],
                         this.view.elements[i].color[1],
@@ -339,16 +278,7 @@ public class inputText_script : MonoBehaviour {
                         + ", " + this.view.elements[i].color[1]
                         + ", " + this.view.elements[i].color[2] + ")"
                         );
-                    /*
-                    Debug.Log("origin will be: (" +
-                        this.view.elements[i].from[0] + ", " +
-                        this.view.elements[i].from[1] + ", " +
-                        this.view.elements[i].from[2] + ") ");
-                    Debug.Log("destin will be: (" +
-                        this.view.elements[i].to[0] + ", " +
-                        this.view.elements[i].to[1] + ", " +
-                        this.view.elements[i].to[2] + ") ");
-                    */
+                    
                     var origin = new Vector3(
                             this.view.elements[i].from[0],
                             this.view.elements[i].from[1],
@@ -362,16 +292,10 @@ public class inputText_script : MonoBehaviour {
 
                     var dist = Vector3.Distance(origin, destination);
                     Vector3 pointAlongLine = Vector3.Normalize(destination - origin) + origin;
-
-                    /*lr.SetPosition(0, origin);
-                    lr.SetPosition(1, pointAlongLine);*/
-
-                    //lr.SetColors(color, color);
-                    //lr.colorGradient.(color,color);
+                    
                     lr.startColor = color; lr.endColor = color;
                     obj.GetComponent<Renderer>().material.color = color;
-                    //lr.SetWidth(0.01f, 0.01f); // usar SCALE
-                    lr.startWidth = 0.01f; lr.endWidth = 0.01f;
+                    lr.startWidth = 0.005f; lr.endWidth = 0.005f;
                     lr.SetPosition(0,//index_edges,
                         new Vector3(
                             origin[0] * positioning[0] + shifting[0],
@@ -384,11 +308,7 @@ public class inputText_script : MonoBehaviour {
                             destination[1] * positioning[1] + shifting[1],
                             destination[2] * positioning[2] + shifting[2]
                             ));
-                    /*lr.transform.localScale = Vector3.Scale(transform.localScale, new Vector3(
-                        0.01f * scaling[0],
-                        0.01f * scaling[1],
-                        0.01f * scaling[2]
-                        ));*/
+
                     index_edges += 1;
 
                     Debug.Log(
@@ -408,22 +328,30 @@ public class inputText_script : MonoBehaviour {
                        ", " + lr.GetPosition(1)[1] +
                        ", " + lr.GetPosition(1)[2] + ") "
                        );
-                    /*
-                    Can't add component 'LineRenderer' to PlaygroundManager because such a component is already added to the game object!
-UnityEngine.GameObject:AddComponent()
-                    (Parece que Linerenderer sólo hay uno... así que debe ser global)
-                    */
                 }
 
             }
-            
-            
-            changeAlertMessage("View loaded correctly", new Color(220, 220, 220));
+
+
+            //world.transform.RotateAroundLocal(new Vector3(0, 0, 1), (float)Math.PI);
+
+            changeAlertMessage("View loaded correctly", new Color(220, 20, 20));
         }
-        catch (WebException e)
+        catch (Exception e)
         {
-            changeAlertMessage("Server Error", new Color(220, 0, 0));
-            Debug.Log("Server Error");
+            var msg = "";
+            if (e is WebException) {
+                msg = "Server Error";
+            }
+            else {
+                msg = "Error";
+            }
+            msg += "\n" + e.Message;
+            msg += "\n" + e.TargetSite.ToString();
+
+            changeAlertMessage(msg, new Color(220, 0, 0));
+            Debug.Log(msg);
+
         };
         
         
