@@ -25,8 +25,7 @@ public class inputText_script : MonoBehaviour {
     public Text inputColoredText; // not used yet
     public Text alertText;
     private Boolean isHide;
-
-    /* Friday May 5. Testing */
+    
     private Boolean[] parsedCodeBool;
     private string[] parsedCodeText; 
 
@@ -34,7 +33,6 @@ public class inputText_script : MonoBehaviour {
     private string textAreaString  = "text area";
 
     public string textArea;
-
 
     public string IP = "http://127.0.0.1";
     public string port = "1702";
@@ -44,7 +42,7 @@ public class inputText_script : MonoBehaviour {
     private string responseString;
     private HttpWebResponse response;
 
-    private RootElement view;
+    private JSONRootElement view;
 
     List<GameObject> gameObjects;
     float[] scaling = { 0.05f, -0.05f, 0.05f }; //{ 0.2f, 0.2f, 0.2f };
@@ -57,7 +55,6 @@ public class inputText_script : MonoBehaviour {
         //world.transform.rotation = new Quaternion(0,0,(float)Math.PI,1);
         gameObjects = new List<GameObject>();
         //world_edges = new Hashtable();
-
 
         this.transform.position = new Vector3(-2.0f, -1.0f, -1.0f);
         
@@ -82,11 +79,14 @@ public class inputText_script : MonoBehaviour {
         Vector3 canvasRotation = GameObject.FindObjectOfType<Canvas>().transform.eulerAngles;
 
         this.shifting = new float[] {
-                r * ( canvasPosition.x + (float)( Math.Sin(Math.PI * canvasRotation.y / 180.0f) * Math.Cos( (Math.PI * canvasRotation.z / 180.0f) ))),
+                r * ( canvasPosition.x + (float)( 
+                (Math.Sin(Math.PI * canvasRotation.y / 180.0f)) * (Math.Cos( (Math.PI * canvasRotation.z / 180.0f) ))) ),
                 r * ( canvasPosition.y + (float)( Math.Sin(1 - (Math.PI * canvasRotation.x / 180.0f)) * Math.Cos( 1 - (Math.PI * canvasRotation.z / 180.0f) )) - 0.5f),
                 2.0f * ( canvasPosition.z + (float)( Math.Cos(Math.PI * canvasRotation.z / 180.0f) ) -1.0f )// - r
 
             };
+        
+        // update edges
         foreach (GameObject e in GameObject.FindGameObjectsWithTag("Edge"))
         {
             var origin_dest = e.name.Split('-');
@@ -101,39 +101,39 @@ public class inputText_script : MonoBehaviour {
             lr.SetPosition(0, origin);
             lr.SetPosition(1, destination);
 
-
         }
-                /*
-                // INI TEST Friday May 10
-                for (int i = 0; i < this.view.elements.Length; i++)
-                {
-                    string id_origin = this.view.elements[i].id_from.ToString();
-                    string id_destination = this.view.elements[i].id_to.ToString();
-                    Vector3 origin = GameObject.Find("World/" + id_origin).transform.position;
-                    Vector3 destination = GameObject.Find("World/" + id_destination).transform.position;
+        /*
+        // INI TEST Friday May 10
+        for (int i = 0; i < this.view.elements.Length; i++)
+        {
+            string id_origin = this.view.elements[i].id_from.ToString();
+            string id_destination = this.view.elements[i].id_to.ToString();
+            Vector3 origin = GameObject.Find("World/" + id_origin).transform.position;
+            Vector3 destination = GameObject.Find("World/" + id_destination).transform.position;
 
-                    Debug.Log(
-                    "type: " + this.view.elements[i].type +
-                    "from: " + origin + " to: " + destination);
+            Debug.Log(
+            "type: " + this.view.elements[i].type +
+            "from: " + origin + " to: " + destination);
 
-                    var dist = Vector3.Distance(origin, destination);
-                    Vector3 pointAlongLine = Vector3.Normalize(destination - origin) + origin;
+            var dist = Vector3.Distance(origin, destination);
+            Vector3 pointAlongLine = Vector3.Normalize(destination - origin) + origin;
 
-                    lr.startColor = color; lr.endColor = color;
-                    obj.GetComponent<Renderer>().material.color = color;
-                    lr.startWidth = 0.005f; lr.endWidth = 0.005f;
-                    lr.SetPosition(0, origin);
-                    lr.SetPosition(1, destination);
-                }
-                // END TEST Friday May 10
+            lr.startColor = color; lr.endColor = color;
+            obj.GetComponent<Renderer>().material.color = color;
+            lr.startWidth = 0.005f; lr.endWidth = 0.005f;
+            lr.SetPosition(0, origin);
+            lr.SetPosition(1, destination);
+        }
+        // END TEST Friday May 10
 
-                */
-            }
+        */
+        }
 
     void manageInput(InputField input) {
 
         if (Input.GetKeyDown(KeyCode.LeftAlt)) {
             this.isHide = !this.isHide;
+
             if (this.isHide) {
                 inputField.selectionColor = new Color(1.0f, 1.0f, 1.0f, 0.0f);
                 inputField.image.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
@@ -151,26 +151,28 @@ public class inputText_script : MonoBehaviour {
             inputField.ActivateInputField();
         }
         
-        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.D) ) {
+        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.D) ) { // Do it!
             try {   
                 // clean previous objects (if they exist)
                 var objects = GameObject.FindGameObjectsWithTag("WodenObj");
-                // clean hashtable (edges)
-                //world_edges.Clear();
-                foreach (GameObject o in objects) {
+                var edges = GameObject.FindGameObjectsWithTag("Edge");
+
+                foreach (GameObject o in objects)
                     Destroy(o.gameObject);
-                }
+
+                foreach (GameObject o in edges)
+                    Destroy(o.gameObject);
             }
             finally { // send script to backend and deploy new geometries
                 sendMsg(input.text);
-                Debug.Log("Highlighted text: " + getHighlighted(input.text));
+                //Debug.Log("Highlighted text: " + getHighlighted(input.text));
             }
         }
     }
 
     // TESTING WED 24TH
     // https://stackoverflow.com/questions/40155890/parse-nested-json-in-unity
-    [System.Serializable]
+    /*[System.Serializable]
     public class RootElement {
         public string key;
         public RWElement[] elements;
@@ -182,19 +184,16 @@ public class inputText_script : MonoBehaviour {
         public int id;
         public string type;
         public Shape shape;
-        /*public List<float> from = new List<float>();
-        public List<float> to = new List<float>();*/
         public int id_from;
         public int id_to;
         public List<float> color = new List<float>();
     }
-
     [System.Serializable]
     public class Shape {
         public string shapeDescription;
         public List<float> extent;
         public List<float> color;
-    }
+    }*/
 
     private void changeAlertMessage(string msg, Color color) {
         alertText.text = msg;
@@ -225,7 +224,7 @@ public class inputText_script : MonoBehaviour {
             Debug.LogWarning("responseString: " + responseString);
             Debug.LogWarning("Json Content:");
 
-            this.view = JsonUtility.FromJson<RootElement>(responseString);
+            this.view = JsonUtility.FromJson<JSONRootElement>(responseString);
 
             // GENERATE GEOMETRIES
             Debug.Log("NUMBER OF GEOMETRIES!!! " + this.view.elements.Length);
@@ -264,7 +263,7 @@ public class inputText_script : MonoBehaviour {
                             obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
                             break;
                     }
-
+                    //world.transform.RotateAroundLocal(new Vector3(0, 0, 1), (float)Math.PI);
                     // set position, scale, and shifting
                     obj.transform.position = new Vector3(
                         this.view.elements[i].position[0] * positioning[0] + shifting[0],
@@ -377,9 +376,10 @@ public class inputText_script : MonoBehaviour {
                             destination[0] * positioning[0] + shifting[0],
                             destination[1] * positioning[1] + shifting[1],
                             destination[2] * positioning[2] + shifting[2]
-                            ));
-                    */
+                            ));*/
+
                     index_edges += 1;
+                    
                     /*
                     Debug.Log(
                        "type :" + this.view.elements[i].type +
@@ -397,14 +397,10 @@ public class inputText_script : MonoBehaviour {
                        " (" + lr.GetPosition(1)[0] +
                        ", " + lr.GetPosition(1)[1] +
                        ", " + lr.GetPosition(1)[2] + ") "
-                       );
-                   */
+                       );   */
                 }
 
             }
-
-
-            //world.transform.RotateAroundLocal(new Vector3(0, 0, 1), (float)Math.PI);
 
             changeAlertMessage("View loaded correctly", new Color(220, 20, 20));
         }
