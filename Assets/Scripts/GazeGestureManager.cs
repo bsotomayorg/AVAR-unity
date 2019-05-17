@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.XR.WSA.Input;
 using UnityEngine.UI;
+//using HoloToolkit.Unity.InputModule;
 using System.IO;
 using System.Text;
 using System;
@@ -12,6 +13,12 @@ public class GazeGestureManager : MonoBehaviour
 
 	// Represents the hologram that is currently being gazed at.
 	public GameObject FocusedObject { get; private set; }
+
+    // test Tuesday May 14  bsotomayor
+    public int tap_count = 0;
+    //public GameObject go_popup;
+    public Text text_popup;
+    // end test
 
 	GestureRecognizer recognizer;
 	Vector3 lastPosition;
@@ -35,7 +42,14 @@ public class GazeGestureManager : MonoBehaviour
 			}
 		};
 		recognizer.StartCapturingGestures();
-	}
+
+        //go_popup = new GameObject("Popup!");
+        //go_popup.transform.SetParent(this.transform);
+        //Text textPopup = go_popup.AddComponent<Text>();
+        //textPopup.text = "Tadah!!!! (count="+this.tap_count+")";
+        text_popup.text = "Tadah!!!! (count=" + this.tap_count + ")";
+        //go_popup.transform.position = new Vector3(1.0f, 0.0f, 1.0f);
+    }
 
 	// Update is called once per frame
 	void Update()
@@ -55,9 +69,12 @@ public class GazeGestureManager : MonoBehaviour
 			// If the raycast hit a hologram, use that as the focused object.
 			FocusedObject = hitInfo.collider.gameObject;
 			countingTextList.text = FocusedObject.name;
-//			countingTextList.text = getName(FocusedObject.name);
+            //bsotomayor edit:
+            //countingTextList.text = GameObject.Find("World/"+((string) FocusedObject.name));
 
-			countingTextList.transform.position = new Vector3 (FocusedObject.transform.position.x+0.1f, FocusedObject.transform.position.y, FocusedObject.transform.position.z-0.1f); //doubleHeight(FocusedObject.transform.position, FocusedObject.transform.localScale);
+            //			countingTextList.text = getName(FocusedObject.name);
+
+            countingTextList.transform.position = new Vector3 (FocusedObject.transform.position.x+0.1f, FocusedObject.transform.position.y, FocusedObject.transform.position.z-0.1f); //doubleHeight(FocusedObject.transform.position, FocusedObject.transform.localScale);
 			//countingTextList.transform.position = new Vector3(countingTextList.transform.position.x, countingTextList.transform.position.y - (Camera.main.transform.forward.y*1.5f), countingTextList.transform.position.z);
 			//countingTextList.transform.rotation = Quaternion.Euler(0,0,0);
 			//Canvas canvas = GameObject.FindGameObjectWithTag("TextCanvas").GetComponent<Canvas>();
@@ -82,7 +99,11 @@ public class GazeGestureManager : MonoBehaviour
 			recognizer.CancelGestures();
 			recognizer.StartCapturingGestures();
 		}
-	}
+
+        // TEST 
+
+        text_popup.text = "Tadah!!!! (count=" + this.tap_count + ")";
+    }
 
 	Vector3 doubleHeight(Vector3 pos, Vector3 scale){
 		return(new Vector3(pos.x, pos.y + (scale.y)/1.7f, pos.z));
@@ -93,7 +114,15 @@ public class GazeGestureManager : MonoBehaviour
 		return(new Vector3 ((obj.x - me.x) * factor, (obj.y - me.y) * factor, (obj.z - me.z) * factor));
 	}
 
-	string getName(string aFullName){
+    /*private void GestureRecognizer_TappedEvent(InteractionSourceKind source, int tapCount, Ray headRay)
+    {
+        if (focusedObject != null)
+        {
+            focusedObject.SendMessage("OnAirTapped", SendMessageOptions.RequireReceiver);
+        }
+    }*/
+
+    string getName(string aFullName){
 		if (validFullName (aFullName)) {
 			string[] words = aFullName.Split ('/');
 			string last = words [words.Length - 1];
@@ -165,4 +194,8 @@ public class GazeGestureManager : MonoBehaviour
         }
         lastPosition = newPos;
 	}
+
+    void OnAirTapped() {
+        this.tap_count++;
+    }
 }

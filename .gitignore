@@ -9,6 +9,10 @@ Library/metadata/*
 Library/StateCache/
 Library/*.log
 Scripts/*.cs.meta
+Assets/Scripts/*.cs.meta
+Assets/MRTK/
+Assets/MRTK/*
+Assets/Scripts/*.meta
 
 # Visual Studio Generated
 App/
