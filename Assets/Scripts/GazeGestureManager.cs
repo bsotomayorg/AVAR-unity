@@ -1,201 +1,242 @@
-﻿using UnityEngine;
-using UnityEngine.XR.WSA.Input;
-using UnityEngine.UI;
-//using HoloToolkit.Unity.InputModule;
-using System.IO;
-using System.Text;
-using System;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.XR.WSA.Input;
 
 public class GazeGestureManager : MonoBehaviour
 {
-	public static GazeGestureManager Instance { get; private set; }
+    public static GazeGestureManager Instance { get; private set; }
+    
+    // Represents the hologram that is currently being gazed at.
+    public GameObject FocusedObject { get; private set; }
+    private GameObject SelectedObject;
 
-	// Represents the hologram that is currently being gazed at.
-	public GameObject FocusedObject { get; private set; }
+    GestureRecognizer recognizer;
+    GestureRecognizer recognizerTestTap;
+    GestureRecognizer recognizerTestHold;
+    public RaycastHit hitInfo;
 
-    // test Tuesday May 14  bsotomayor
-    public int tap_count = 0;
-    //public GameObject go_popup;
-    public Text text_popup;
-    // end test
+    public Vector3 handPosition_start = new Vector3(0, 0, 0);
+    public Vector3 handPosition_current  = new Vector3(0, 0, 0);
 
-	GestureRecognizer recognizer;
-	Vector3 lastPosition;
-	string fileName;
+    GameObject go_start; 
+    GameObject go_end;
 
-	// Use this for initialization
-	void Awake()
-	{
-		Instance = this;
-		lastPosition = Camera.main.transform.position;
-		fileName = "recordedPositions_"+DateTime.Now.Year + "" + DateTime.Now.Month + "" + DateTime.Now.Day + "" + DateTime.Now.Hour + "" + DateTime.Now.Minute + "" + DateTime.Now.Second+".txt";
+    LineRenderer line;
 
-		// Set up a GestureRecognizer to detect Select gestures.
-		recognizer = new GestureRecognizer();
-		recognizer.Tapped += (args) =>
-		{
-			// Send an OnSelect message to the focused object and its ancestors.
-			if (FocusedObject != null)
-			{
-				FocusedObject.SendMessageUpwards("OnSelect", SendMessageOptions.DontRequireReceiver);
-			}
-		};
-		recognizer.StartCapturingGestures();
+    public short selected_object = -1; // -1: null, 0: world, 1: woden object
 
-        //go_popup = new GameObject("Popup!");
-        //go_popup.transform.SetParent(this.transform);
-        //Text textPopup = go_popup.AddComponent<Text>();
-        //textPopup.text = "Tadah!!!! (count="+this.tap_count+")";
-        text_popup.text = "Tadah!!!! (count=" + this.tap_count + ")";
-        //go_popup.transform.position = new Vector3(1.0f, 0.0f, 1.0f);
-    }
+    // Start is called before the first frame update
+    void Awake() {
+        go_start = new GameObject();
+        go_end   = new GameObject();
 
-	// Update is called once per frame
-	void Update()
-	{
-		// Figure out which hologram is focused this frame.
-		GameObject oldFocusObject = FocusedObject;
-		//Invoke ("recordPosition", 1.0f);
-		// Do a raycast into the world based on the user's
-		// head position and orientation.
-		var headPosition = Camera.main.transform.position;
-		var gazeDirection = Camera.main.transform.forward;
+        line = go_start.AddComponent<LineRenderer>();
 
-		RaycastHit hitInfo;
-		Text countingTextList = GameObject.FindGameObjectWithTag("TextPanel").GetComponent<Text>();
-		if (Physics.Raycast(headPosition, gazeDirection, out hitInfo))
-		{
-			// If the raycast hit a hologram, use that as the focused object.
-			FocusedObject = hitInfo.collider.gameObject;
-			countingTextList.text = FocusedObject.name;
-            //bsotomayor edit:
-            //countingTextList.text = GameObject.Find("World/"+((string) FocusedObject.name));
+        line.startColor = Color.green;
+        line.endColor = Color.blue;
 
-            //			countingTextList.text = getName(FocusedObject.name);
+        line.startWidth = 0;
+        line.endWidth = 0;
 
-            countingTextList.transform.position = new Vector3 (FocusedObject.transform.position.x+0.1f, FocusedObject.transform.position.y, FocusedObject.transform.position.z-0.1f); //doubleHeight(FocusedObject.transform.position, FocusedObject.transform.localScale);
-			//countingTextList.transform.position = new Vector3(countingTextList.transform.position.x, countingTextList.transform.position.y - (Camera.main.transform.forward.y*1.5f), countingTextList.transform.position.z);
-			//countingTextList.transform.rotation = Quaternion.Euler(0,0,0);
-			//Canvas canvas = GameObject.FindGameObjectWithTag("TextCanvas").GetComponent<Canvas>();
-			//countingTextList.transform.position = inBetween(FocusedObject.transform.position, Camera.main.transform.position);
+        line.enabled = false;
 
+        Debug.Log("GazeGestureManager Awake!");
+        // Set up a GestureRecognizer to detect Select gestures.
+        recognizer = new GestureRecognizer();
 
-			//System.Random rnd = new System.Random ();
-			//canvas.planeDistance = rnd.Next (1, 100) / 100f;// transform.position = FocusedObject.transform.position
-		}
-		//else
-		//{
-			// If the raycast did not hit a hologram, clear the focused object.
-			////FocusedObject = null;
-			//countingTextList.transform.position = new Vector3(countingTextList.transform.position.x, countingTextList.transform.position.y - (Camera.main.transform.forward.y*0.01f), countingTextList.transform.position.z);
-		//}
-		countingTextList.transform.rotation = Quaternion.Euler(0,0,0);
-
-		// If the focused object changed this frame,
-		// start detecting fresh gestures again.
-		if (FocusedObject != oldFocusObject)
-		{
-			recognizer.CancelGestures();
-			recognizer.StartCapturingGestures();
-		}
-
-        // TEST 
-
-        text_popup.text = "Tadah!!!! (count=" + this.tap_count + ")";
-    }
-
-	Vector3 doubleHeight(Vector3 pos, Vector3 scale){
-		return(new Vector3(pos.x, pos.y + (scale.y)/1.7f, pos.z));
-	}
-
-	Vector3 inBetween(Vector3 obj, Vector3 me){
-		float factor = 0.5f;
-		return(new Vector3 ((obj.x - me.x) * factor, (obj.y - me.y) * factor, (obj.z - me.z) * factor));
-	}
-
-    /*private void GestureRecognizer_TappedEvent(InteractionSourceKind source, int tapCount, Ray headRay)
-    {
-        if (focusedObject != null)
+        // TEMP
+        /*recognizerTestTap = new GestureRecognizer();
+        recognizerTestHold = new GestureRecognizer();
+        recognizerTestTap.SetRecognizableGestures(GestureSettings.Tap);
+        recognizerTestHold.SetRecognizableGestures(GestureSettings.Hold);
+        recognizerTestHold.Tapped += (args) =>
         {
-            focusedObject.SendMessage("OnAirTapped", SendMessageOptions.RequireReceiver);
+            GameObject.Find("World").gameObject.GetComponent<InteractiveGameObject>().gameObject.SendMessageUpwards("TestTap", SendMessageOptions.DontRequireReceiver);
+        };
+        recognizerTestHold.HoldStarted += (args) =>
+        {
+            GameObject.Find("World").gameObject.GetComponent<InteractiveGameObject>().gameObject.SendMessageUpwards("TestHold", SendMessageOptions.DontRequireReceiver);
+        };
+        */
+        //END TEMP
+
+        recognizer.SetRecognizableGestures(GestureSettings.Tap | GestureSettings.Hold | GestureSettings.NavigationX | GestureSettings.NavigationY);
+
+        recognizer.Tapped += (args) =>
+        {
+            Debug.Log("before: this.selected_object = " + this.selected_object);
+
+            if (this.selected_object == -1) { // if nothing selected
+                if(FocusedObject == null) {
+                    SelectedObject = GameObject.Find("World").gameObject;
+                    SelectedObject.GetComponent<InteractiveGameObject>().popup_msg = "";
+                    this.selected_object = 0;
+                    Debug.Log("GazeGesturerManager -> Focus: World");
+                } else {
+                    SelectedObject = hitInfo.collider.gameObject;
+                    this.selected_object = 1;
+                    Debug.Log("GazeGesturerManager -> Focus: WodenObj");
+                }
+                SelectedObject.SendMessageUpwards("OnAirTapped", SendMessageOptions.DontRequireReceiver);
+
+            } else if (this.selected_object == 0) { // if previously was selected the world
+                // assign position to the selected object
+                //FocusedObject = GameObject.Find("World").gameObject;
+                SelectedObject.SendMessageUpwards("setInactiveWorld", SendMessageOptions.DontRequireReceiver);
+                Debug.Log("Setting inactive: "+SelectedObject.name+"(obj.name)");
+                this.selected_object = -1;
+
+            } else if (this.selected_object == 1) { // if previously was selected a woden object
+                // assign position to the selected object
+                SelectedObject.SendMessageUpwards("setInactive", SendMessageOptions.DontRequireReceiver);
+                Debug.Log("Setting inactive: " + SelectedObject.name + "(obj.name)");
+                this.selected_object = -1;
+
+            }
+            Debug.Log("after : this.selected_object = " + this.selected_object);
+            Debug.Log("--");
+        };
+
+        recognizer.HoldStarted += (args) =>
+        {
+            Debug.Log("Hold started. Pos: " + this.handPosition_start);
+        };
+        recognizer.HoldCompleted += (args) =>
+        {
+            //GameObject.Find("World").gameObject.GetComponent<InteractiveGameObject>().gameObject.SendMessageUpwards("TestTap", SendMessageOptions.DontRequireReceiver);
+            Debug.Log("Hold Completed");
+        };
+
+        recognizer.NavigationStarted += (args) =>
+        {
+            this.handPosition_start = this.handPosition_current;
+            Debug.Log("NavigationStarted: " + this.handPosition_start);
+            line.enabled = true;
+        };
+        recognizer.NavigationUpdated += (args) =>
+        {
+            InteractionManager.InteractionSourceUpdatedLegacy += GetPosition;
+            float [] rotation_velocity = { 1.0f, 2.0f, 1.0f };// 0.2f;
+
+            Vector3 dif = (this.handPosition_current - this.handPosition_start);
+
+            GameObject.Find("Canvas/PopupPanel/Popup").GetComponent<Text>().text = "Dif=" + dif;
+
+            Debug.Log("NavigationUpdated: "+this.handPosition_current+"-"+this.handPosition_start+"="+ dif);
+
+            line.startColor = Color.green;
+            line.endColor = Color.blue;
+            line.GetComponent<Renderer>().material.color = new Color(255,255,255,0.2f);
+
+            line.startWidth = 0.0025f;
+            line.endWidth = 0.02f;
+
+            // Temp
+            Vector3 shift = Camera.main.transform.position + Camera.main.transform.forward ;
+            line.SetPosition(0, shift + (new Vector3(0,0.05f,0.0f)+this.handPosition_start));
+            line.SetPosition(1, shift + (new Vector3(0,0.05f,0.0f)+this.handPosition_current));
+
+            GameObject.Find("World").gameObject.transform.RotateAroundLocal(new Vector3(0, 1, 0), -dif.x * rotation_velocity[0]);
+            //GameObject.Find("World").gameObject.transform.RotateAroundLocal(new Vector3(1, 0, 0), -dif.z * rotation_velocity[1]);
+            //GameObject.Find("World").gameObject.transform.RotateAroundLocal(new Vector3(0, 0, 1), dif.y * rotation_velocity[2]);
+        };
+        recognizer.NavigationCompleted += (args) =>
+        {
+            line.enabled = false;
+            Debug.Log("NavigationCompleted");
+        };
+        recognizer.NavigationCanceled += (args) =>
+        {
+            line.enabled = false;
+            Debug.Log("NavigationCanceled");
+        };
+        //InteractionManager.InteractionSourcePressedLegacy += GetPosition;
+
+        /*recognizer.NavigationStartedEvent += NavigationRecognizer_NavigationStartedEvent;
+        recognizer.NavigationUpdatedEvent += NavigationRecognizer_NavigationUpdatedEvent;
+        recognizer.NavigationCompletedEvent += NavigationRecognizer_NavigationCompletedEvent;
+        recognizer.NavigationCanceledEvent += NavigationRecognizer_NavigationCanceledEvent;*/
+
+    }
+
+    private void GetPosition(InteractionSourceState state)  {
+        Vector3 pos = new Vector3(0,0,0);
+        if (state.properties.sourcePose.TryGetPosition(out pos))
+        {
+            this.handPosition_current = pos;
         }
+
+    }
+
+    /*private void NavigationRecognizer_NavigationCanceledEvent(InteractionSourceKind source, Vector3 normalizedOffset, Ray headRay)
+    {
+        GameObject.Find("Canvas/Popup").GetComponent<Text>().text = "Canceled";
+    }
+
+    private void NavigationRecognizer_NavigationCompletedEvent(InteractionSourceKind source, Vector3 normalizedOffset, Ray headRay)
+    {
+        GameObject.Find("Canvas/Popup").GetComponent<Text>().text = "Completed";
+    }
+
+    private void NavigationRecognizer_NavigationUpdatedEvent(InteractionSourceKind source, Vector3 normalizedOffset, Ray headRay)
+    {
+        GameObject.Find("Canvas/Popup").GetComponent<Text>().text = "Updated";
+    }
+
+    private void NavigationRecognizer_NavigationStartedEvent(InteractionSourceKind source, Vector3 normalizedOffset, Ray headRay)
+    {
+        GameObject.Find("Canvas/Popup").GetComponent<Text>().text = "Started";
     }*/
 
-    string getName(string aFullName){
-		if (validFullName (aFullName)) {
-			string[] words = aFullName.Split ('/');
-			string last = words [words.Length - 1];
-			string[] tokens = last.Split ('.');
-			return tokens [0];
-		} else {
-			return "";
-		}
-	}
+    // Update is called once per frame
+    void Update() {
+        // Figure out which hologram is focused this frame.
+        GameObject oldFocusObject = FocusedObject;
 
-	string getSource(string aFullName){
-		string ret = "";
-		try{
-			var fileStream = new FileStream(@"c:\moose\" + aFullName, FileMode.Open, FileAccess.Read);
-			using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
-			{
-				//int i = 0;
-				string line;
-				bool isComment = false;
-				while ((line = streamReader.ReadLine()) != null /*&& i < 100 */&& ret.Length < 10000)
-				{
-					// i++;
-					bool skip = false;
-					if (line.IndexOf("/*") > -1)
-					{
-						isComment = true;
-					}
-					if (line.IndexOf("import") > -1 || line.IndexOf("//") > -1 || line.IndexOf("package") > -1 || line.Length == 0)
-					{
-						skip = true;
-					}
-					if (!isComment && !skip)
-					{
-						ret += line + "\n";
-					}
-					if (line.IndexOf("*/") > -1)
-					{
-						isComment = false;
-					}
-				}
+        // Do a raycast into the world based on the user's
+        // head position and orientation.
+        var headPosition = Camera.main.transform.position;
+        var gazeDirection = Camera.main.transform.forward;
 
-			}
-		}
-		catch(Exception e){
-			ret = "ERROR: " +e.Message;//+ @"c:\moose\" + aFullName;
-		}
-		return ret;
-	}
-
-	bool validFullName(string aName){
-		return (aName.IndexOf ('/') >= 0 && aName.IndexOf ('.') > 0);
-	}
-
-
-
-	void recordPosition (){
-		Vector3 newPos = Camera.main.transform.position;
-        Vector3 diff = newPos - lastPosition;
-        float speed = (diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
-        string line = newPos.x + "," + newPos.y + "," + newPos.z + "," + speed;
-        if (File.Exists(@fileName)) {
-            StreamWriter file = new StreamWriter(@fileName,true);
-            file.WriteLine(line);
-            file.Flush();
-            file.Close();
+        
+        if (Physics.Raycast(headPosition, gazeDirection, out hitInfo))
+        {
+            // If the raycast hit a hologram, use that as the focused object.
+            FocusedObject = hitInfo.collider.gameObject;
+            //Debug.Log("FocusedObject.name: " + FocusedObject.name + " position " + FocusedObject.transform.position);
         }
-        else {
-            File.WriteAllText(@fileName, line+"\n");
+        else
+        {
+            // If the raycast did not hit a hologram, clear the focused object.
+            FocusedObject = null;
+            //Debug.Log("FocusedObject.name: NULL");
+            GameObject.Find("World").GetComponent<InteractiveGameObject>().popup_msg = "";
         }
-        lastPosition = newPos;
-	}
 
-    void OnAirTapped() {
-        this.tap_count++;
+        // If the focused object changed this frame,
+        // start detecting fresh gestures again.
+        if (FocusedObject != oldFocusObject) {
+            recognizer.CancelGestures();
+            recognizer.StartCapturingGestures();
+        }
     }
+
+    // Gesture recognizer (https://abhijitjana.net/2016/05/29/understanding-the-gesture-and-adding-air-tap-gesture-into-your-unity-3d-holographic-app/)
+    private void GestureRecognizer_TappedEvent(InteractionSourceKind source, int tapCount, Ray headRay) {
+        if (FocusedObject != null) {
+            Debug.Log("TAP!");
+            FocusedObject.SendMessage("OnAirTapped", SendMessageOptions.RequireReceiver);
+        }
+    }
+
+    // Navigation https://forums.hololens.com/discussion/2507/add-navigation-gesture
+ 
+
+
+
 }

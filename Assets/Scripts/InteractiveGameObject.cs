@@ -21,6 +21,9 @@ public class InteractiveGameObject : MonoBehaviour/*, IMixedRealityInputHandler*
     float originalDistance;
     Vector3 cameraOriginalPosition;
 
+    public float deltaTime;
+    float fps;
+
     void Awake() {
         /*originalColor = this.GetComponent<Renderer>().material.color;
         count = 0;*/
@@ -35,7 +38,7 @@ public class InteractiveGameObject : MonoBehaviour/*, IMixedRealityInputHandler*
 
     // values which indicates which is the interaction with the object once the user taps and gazes an object.
     //public const short mode = 0; 
-    public string mode = "";
+    public string [] interactions;
     /*public int selected_mode = 0;
     public const int MAKE_RIGID_BODY = 0;
     public const int ROTATE = 1;*/
@@ -49,38 +52,60 @@ public class InteractiveGameObject : MonoBehaviour/*, IMixedRealityInputHandler*
     };*/
 
     void Update() {
+        // interaction when the object is just gazed
+        if(Array.IndexOf(this.interactions,"Popup") >= 0)
+        {
+            this.showPopup();
+        }
 
-        if (isActive) {
+        if (isActive) { // interactinos when the the object is selected
 
             showPopup();
             //showPopup();
             //changePosition();
-            switch (this.mode) {
-                case "RigidBody":
-                    makeRigidBody();
-                    break;
-                case "Rotate":
-                    rotate();
-                    break;
-                case "Move":
-                    moveElement();
-                    break;
-                case "Blink":
-                    blink();
-                    break;
-                default:
-                    //createPopUp("No interaction defined");
-                    break;
+            foreach (string interaction in this.interactions) { 
+                switch (interaction) {
+                    case "RigidBody":
+                        makeRigidBody();
+                        break;
+                    case "Rotate":
+                        rotate();
+                        break;
+                    case "Move":
+                        moveElement();
+                        break;
+                    case "Blink":
+                        blink();
+                        break;
+                    case "Popup":
+                        this.showPopup();
+                        break;
+                    default:
+                        //createPopUp("No interaction defined");
+                        break;
+                }
             }
         }
         //changePosition();
     }
     void OnAirTapped() {
-        if (!isActive) this.originalPosition = this.transform.position;
-        isActive = !isActive;
-        //this.GetComponent<Renderer>().material.color = originalColor;
+        var selected = GameObject.Find("GestureManager").GetComponent<GazeGestureManager>().selected_object;
+        if ( (this.name == "World" && selected == 0) || (this.name != "World" && selected == 1)) {
+            if (!isActive) this.originalPosition = this.transform.position;
 
-        Debug.Log("ObjCommand["+this.name+"] > Message received! (mode = " + this.mode + ", isActive = " + isActive + ")");
+            isActive = !isActive;
+
+            Debug.Log("ObjCommand[" + this.name + "].OnAirTapped, isActive = " + isActive + ")");
+        }
+    }
+
+    void testTap()
+    {
+        this.showPopup("TAP!");
+    }
+    void testHold()
+    {
+        this.showPopup("Hold...");
     }
 
     private void rotate() {
@@ -101,7 +126,20 @@ public class InteractiveGameObject : MonoBehaviour/*, IMixedRealityInputHandler*
     private void showPopup() {
         //var popup_text = GameObject.Find("Canvas/Popup").GetComponent<Text>().text;
         //popup_text = "(" + this.name + " mode: " + this.mode + ")";
-        this.showPopup( popup_msg + " mode: "+this.mode );
+        this.showPopup( this.popup_msg );
+    }
+
+    private void setInactive() {
+        if (this.name != "World" && this.isActive) {
+            this.isActive = false;
+            Debug.Log("ObjCommand[" + this.name + "].SetInactive, isActive = " + this.isActive + ")");
+        }
+    }
+    private void setInactiveWorld() {
+        if (this.name == "World" && this.isActive) {
+            this.isActive = false;
+            Debug.Log("ObjCommand[" + this.name + "].SetInactiveWorld, isActive = " + this.isActive + ")");
+        }
     }
 
     private void moveElement()
@@ -109,9 +147,13 @@ public class InteractiveGameObject : MonoBehaviour/*, IMixedRealityInputHandler*
         if (this.name != "World"){ // moving a woden object
             //var distance = Camera.main.transform.position + originalPosition;
             //this.transform.position = distance;
-            this.transform.position = Camera.main.transform.forward + Camera.main.transform.position;
+            //this.transform.position = Camera.main.transform.forward + Camera.main.transform.position;
+            
+            var distance = Vector3.Distance(this.originalPosition, Camera.main.transform.position);
+            this.transform.position = Camera.main.transform.position + Camera.main.transform.forward * distance;
+
             //this.transform.position = Camera.main.transform.forward + originalPosition;// + new Vector3(0,0,-0.05f);
-            this.showPopup("[mv](WodenObj)" + this.transform.forward);// + " (d="+distance+")";
+            //this.showPopup("[mv](WodenObj)" + this.transform.forward+" FPS: ");// + " (d="+distance+")";
         } else { // moving the world
                  //this.transform.position = Camera.main.transform.forward + Camera.main.transform.position + this.originalPosition;
                  //this.transform.position = this.originalDistance + Camera.main.transform.position;
@@ -127,12 +169,16 @@ public class InteractiveGameObject : MonoBehaviour/*, IMixedRealityInputHandler*
             //this.transform.position = Camera.main.transform.forward * Vector3.Distance(this.originalPosition, new Vector3(0,0,0));
 
             // attempt #4:
-            var distance = Vector3.Distance(this.originalPosition, new Vector3(0, 0, 0));
+            var distance = Vector3.Distance(this.originalPosition, Camera.main.transform.position);
 
             this.transform.position = Camera.main.transform.position + Camera.main.transform.forward * distance;
 
-            this.showPopup("[mv](world) to" + this.transform.position); // + "|"+ Camera.main.transform.forward.normalized + "|"+distance);
+            // let's compute FPS
+            this.deltaTime += (Time.deltaTime - this.deltaTime) * 0.1f;
+            this.fps = 1.0f / deltaTime;
 
+            this.showPopup("[mv](world) to" + this.transform.position + "FPS: " + String.Format("{0:0.##}", this.fps)); // + "|"+ Camera.main.transform.forward.normalized + "|"+distance);
+            
         }
         // first: selection
 
@@ -168,7 +214,14 @@ public class InteractiveGameObject : MonoBehaviour/*, IMixedRealityInputHandler*
     }*/
     private void showPopup(string msg)
     {
-        GameObject.Find("Canvas/Popup").GetComponent<Text>().text = msg;
+        //if (GameObject.Find("GestureManager").GetComponent<GazeGestureManager>().hitInfo..collider.gameObject == null)
+        if (GameObject.Find("GestureManager").GetComponent<GazeGestureManager>().FocusedObject != null) {
+            GameObject.Find("Canvas/PopupPanel/Popup").GetComponent<Text>().text = msg;
+            GameObject.Find("Canvas/PopupPanel").GetComponent<Image>().color = new Color(0.5f, 0.5f, 0.5f, 0.7f);
+        } else if(GameObject.Find("Canvas/PopupPanel/Popup").GetComponent<Text>().text!=""){
+            GameObject.Find("Canvas/PopupPanel/Popup").GetComponent<Text>().text = "";
+            GameObject.Find("Canvas/PopupPanel").GetComponent<Image>().color = new Color(0, 0, 0, 0);
+        }
     }
 
 }

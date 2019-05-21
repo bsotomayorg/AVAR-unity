@@ -24,8 +24,7 @@ public class WodenObject
     public Boolean isSelected; // Is this object selected for interaction?
     int id;
     
-    public WodenObject(GameObject go, int id, string wodenType)
-    {
+    public WodenObject(GameObject go, int id, string wodenType) {
         this.go = go;
         this.id = id;
         this.wodenType = wodenType;
@@ -70,14 +69,18 @@ public class playground : MonoBehaviour {
 
     InteractiveGameObject world_interaction;
 
+    private string[] interactions = {"Move", "Popup"}; // Later, this will be read from JSON
+
     // Start is called before the first frame update
     void Start() {
         //world.transform.rotation = new Quaternion(0,0,(float)Math.PI,1);
         gameObjects = new List<GameObject>();
         //world_edges = new Hashtable();
 
+        GameObject.Find("Canvas/PopupPanel").GetComponent<Image>().color = new Color(0, 0, 0, 0);
+
         world_interaction = world.AddComponent<InteractiveGameObject>(); // test
-        world_interaction.mode = "Move";
+        world_interaction.interactions = this.interactions;
 
         this.transform.position = new Vector3(-2.0f, -1.0f, -1.0f);
         
@@ -220,6 +223,7 @@ public class playground : MonoBehaviour {
         try {
             // SEND POST
             var request = (HttpWebRequest)WebRequest.Create(IP + ":" + port + "/");
+            request.Timeout = 3000;
             var data = System.Text.Encoding.ASCII.GetBytes(script + "v encodeAllElementsInSceneAsJSON");
 
             request.Method = "POST";
@@ -254,6 +258,8 @@ public class playground : MonoBehaviour {
             float average_x = 0f;
             float average_y = 0f;
             float average_z = 0f;
+
+            float min_z = 1000.0f;
             int element_count = 0;
 
 
@@ -329,7 +335,7 @@ public class playground : MonoBehaviour {
                     //interaction.mode = "Blink";
                     //interaction.mode = "RigidBody";
                     //interaction.mode = "Rotate";
-                    interaction.mode = "Move";
+                    interaction.interactions = this.interactions;
                     //if (interaction is popup):
                     interaction.popup_msg = obj.wodenType;
 
@@ -337,6 +343,8 @@ public class playground : MonoBehaviour {
                     average_z += obj.go.transform.position.y;
                     average_z += obj.go.transform.position.z;
                     element_count += 1;
+
+                    if (min_z > obj.go.transform.position.y) min_z = obj.go.transform.position.y;
 
 
                     Debug.Log(
@@ -430,15 +438,12 @@ public class playground : MonoBehaviour {
             changeAlertMessage("View loaded correctly", new Color(220, 20, 20));
 
             Vector3 v_shifting = new Vector3(shifting[0], shifting[1], shifting[2]);
+            Debug.Log("Minimum Z: " + min_z);
 
             var distance = 1.0f; //Vector3.Distance(this.originalPosition, new Vector3(0, 0, 0));
-            // Pendiente FriMay17
-            //opcion1: v_shifting += Camera.main.transform.position + Camera.main.transform.forward * distance; // PENDIENTE 
-            //opcion2: 
             v_shifting = Camera.main.transform.position + Camera.main.transform.forward * distance;
-            //this.transform.position = Camera.main.transform.position + Camera.main.transform.forward * distance;
-            //this.world.transform.position = new Vector3(shifting[0], shifting[1], shifting[2]);
             this.world.transform.position = v_shifting;
+            this.world.transform.RotateAroundLocal(new Vector3(1, 0, 0), (float)Math.PI);
             //this.world.transform.rotation = Camera.main.transform.rotation;
             // [pendiente]: solve the rotation problem
         }
