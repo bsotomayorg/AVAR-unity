@@ -49,22 +49,6 @@ public class GazeGestureManager : MonoBehaviour
         // Set up a GestureRecognizer to detect Select gestures.
         recognizer = new GestureRecognizer();
 
-        // TEMP
-        /*recognizerTestTap = new GestureRecognizer();
-        recognizerTestHold = new GestureRecognizer();
-        recognizerTestTap.SetRecognizableGestures(GestureSettings.Tap);
-        recognizerTestHold.SetRecognizableGestures(GestureSettings.Hold);
-        recognizerTestHold.Tapped += (args) =>
-        {
-            GameObject.Find("World").gameObject.GetComponent<InteractiveGameObject>().gameObject.SendMessageUpwards("TestTap", SendMessageOptions.DontRequireReceiver);
-        };
-        recognizerTestHold.HoldStarted += (args) =>
-        {
-            GameObject.Find("World").gameObject.GetComponent<InteractiveGameObject>().gameObject.SendMessageUpwards("TestHold", SendMessageOptions.DontRequireReceiver);
-        };
-        */
-        //END TEMP
-
         recognizer.SetRecognizableGestures(GestureSettings.Tap | GestureSettings.Hold | GestureSettings.NavigationX | GestureSettings.NavigationY);
 
         recognizer.Tapped += (args) =>
@@ -102,30 +86,27 @@ public class GazeGestureManager : MonoBehaviour
             Debug.Log("--");
         };
 
-        recognizer.HoldStarted += (args) =>
+        /*recognizer.HoldStarted += (args) =>
         {
             Debug.Log("Hold started. Pos: " + this.handPosition_start);
         };
         recognizer.HoldCompleted += (args) =>
         {
-            //GameObject.Find("World").gameObject.GetComponent<InteractiveGameObject>().gameObject.SendMessageUpwards("TestTap", SendMessageOptions.DontRequireReceiver);
             Debug.Log("Hold Completed");
-        };
+        };*/
 
-        recognizer.NavigationStarted += (args) =>
-        {
+        recognizer.NavigationStarted += (args) =>  {
             this.handPosition_start = this.handPosition_current;
             Debug.Log("NavigationStarted: " + this.handPosition_start);
             line.enabled = true;
         };
-        recognizer.NavigationUpdated += (args) =>
-        {
+        recognizer.NavigationUpdated += (args) => {
             InteractionManager.InteractionSourceUpdatedLegacy += GetPosition;
             float [] rotation_velocity = { 1.0f, 2.0f, 1.0f };// 0.2f;
 
             Vector3 dif = (this.handPosition_current - this.handPosition_start);
 
-            GameObject.Find("Canvas/PopupPanel/Popup").GetComponent<Text>().text = "Dif=" + dif;
+            GameObject.Find("Canvas/PopupPanel/Popup").GetComponent<Text>().text = "[MODE: Rotating]";
 
             Debug.Log("NavigationUpdated: "+this.handPosition_current+"-"+this.handPosition_start+"="+ dif);
 
@@ -145,53 +126,24 @@ public class GazeGestureManager : MonoBehaviour
             //GameObject.Find("World").gameObject.transform.RotateAroundLocal(new Vector3(1, 0, 0), -dif.z * rotation_velocity[1]);
             //GameObject.Find("World").gameObject.transform.RotateAroundLocal(new Vector3(0, 0, 1), dif.y * rotation_velocity[2]);
         };
-        recognizer.NavigationCompleted += (args) =>
-        {
+        recognizer.NavigationCompleted += (args) =>  {
             line.enabled = false;
             Debug.Log("NavigationCompleted");
         };
-        recognizer.NavigationCanceled += (args) =>
-        {
+        recognizer.NavigationCanceled += (args) => {
             line.enabled = false;
             Debug.Log("NavigationCanceled");
         };
-        //InteractionManager.InteractionSourcePressedLegacy += GetPosition;
-
-        /*recognizer.NavigationStartedEvent += NavigationRecognizer_NavigationStartedEvent;
-        recognizer.NavigationUpdatedEvent += NavigationRecognizer_NavigationUpdatedEvent;
-        recognizer.NavigationCompletedEvent += NavigationRecognizer_NavigationCompletedEvent;
-        recognizer.NavigationCanceledEvent += NavigationRecognizer_NavigationCanceledEvent;*/
 
     }
 
     private void GetPosition(InteractionSourceState state)  {
         Vector3 pos = new Vector3(0,0,0);
-        if (state.properties.sourcePose.TryGetPosition(out pos))
-        {
+        if (state.properties.sourcePose.TryGetPosition(out pos)) {
             this.handPosition_current = pos;
         }
 
     }
-
-    /*private void NavigationRecognizer_NavigationCanceledEvent(InteractionSourceKind source, Vector3 normalizedOffset, Ray headRay)
-    {
-        GameObject.Find("Canvas/Popup").GetComponent<Text>().text = "Canceled";
-    }
-
-    private void NavigationRecognizer_NavigationCompletedEvent(InteractionSourceKind source, Vector3 normalizedOffset, Ray headRay)
-    {
-        GameObject.Find("Canvas/Popup").GetComponent<Text>().text = "Completed";
-    }
-
-    private void NavigationRecognizer_NavigationUpdatedEvent(InteractionSourceKind source, Vector3 normalizedOffset, Ray headRay)
-    {
-        GameObject.Find("Canvas/Popup").GetComponent<Text>().text = "Updated";
-    }
-
-    private void NavigationRecognizer_NavigationStartedEvent(InteractionSourceKind source, Vector3 normalizedOffset, Ray headRay)
-    {
-        GameObject.Find("Canvas/Popup").GetComponent<Text>().text = "Started";
-    }*/
 
     // Update is called once per frame
     void Update() {
@@ -202,19 +154,15 @@ public class GazeGestureManager : MonoBehaviour
         // head position and orientation.
         var headPosition = Camera.main.transform.position;
         var gazeDirection = Camera.main.transform.forward;
-
         
-        if (Physics.Raycast(headPosition, gazeDirection, out hitInfo))
-        {
+        if (Physics.Raycast(headPosition, gazeDirection, out hitInfo)) {
             // If the raycast hit a hologram, use that as the focused object.
             FocusedObject = hitInfo.collider.gameObject;
             //Debug.Log("FocusedObject.name: " + FocusedObject.name + " position " + FocusedObject.transform.position);
         }
-        else
-        {
+        else {
             // If the raycast did not hit a hologram, clear the focused object.
             FocusedObject = null;
-            //Debug.Log("FocusedObject.name: NULL");
             GameObject.Find("World").GetComponent<InteractiveGameObject>().popup_msg = "";
         }
 
@@ -233,10 +181,5 @@ public class GazeGestureManager : MonoBehaviour
             FocusedObject.SendMessage("OnAirTapped", SendMessageOptions.RequireReceiver);
         }
     }
-
-    // Navigation https://forums.hololens.com/discussion/2507/add-navigation-gesture
- 
-
-
 
 }

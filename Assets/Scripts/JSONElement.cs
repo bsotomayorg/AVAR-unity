@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 
 [Serializable]
-public class JSONElement{
+public class JSONElement
+{
+    public JSONShape shape;
     public List<float> position;
+    public List<float> color = new List<float>();
     public int id;
     public string type;
-    public JSONShape shape;
 
-    public int id_from;
-    public int id_to;
-    public List<float> color = new List<float>();
+    public int from_id;
+    public int to_id;
 }

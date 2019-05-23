@@ -61,6 +61,8 @@ public class playground : MonoBehaviour {
 
     private JSONRootElement view;
 
+    private Boolean DEBUG = true;
+
     List<GameObject> gameObjects;
     float[] scaling = { 0.05f, 0.05f, 0.05f }; //{ 0.2f, 0.2f, 0.2f };
     float[] positioning = { 0.05f, -0.05f, 0.05f }; //{ 1.0f, 1.0f, 1.0f };//{ 0.2f, -0.2f, 0.2f };
@@ -69,13 +71,11 @@ public class playground : MonoBehaviour {
 
     InteractiveGameObject world_interaction;
 
-    private string[] interactions = {"Move", "Popup"}; // Later, this will be read from JSON
+    private short[] interactions = {InteractiveGameObject.MOVE, InteractiveGameObject.POPUP}; // Later, this will be read from JSON
 
     // Start is called before the first frame update
     void Start() {
-        //world.transform.rotation = new Quaternion(0,0,(float)Math.PI,1);
         gameObjects = new List<GameObject>();
-        //world_edges = new Hashtable();
 
         GameObject.Find("Canvas/PopupPanel").GetComponent<Image>().color = new Color(0, 0, 0, 0);
 
@@ -118,35 +118,15 @@ public class playground : MonoBehaviour {
             lr.SetPosition(0, origin);
             lr.SetPosition(1, destination);
         }
-
-        /*
-        // INI TEST Friday May 10
-        for (int i = 0; i < this.view.elements.Length; i++)
-        {
-            string id_origin = this.view.elements[i].id_from.ToString();
-            string id_destination = this.view.elements[i].id_to.ToString();
-            Vector3 origin = GameObject.Find("World/" + id_origin).transform.position;
-            Vector3 destination = GameObject.Find("World/" + id_destination).transform.position;
-
-            Debug.Log(
-            "type: " + this.view.elements[i].type +
-            "from: " + origin + " to: " + destination);
-
-            var dist = Vector3.Distance(origin, destination);
-            Vector3 pointAlongLine = Vector3.Normalize(destination - origin) + origin;
-
-            lr.startColor = color; lr.endColor = color;
-            obj.GetComponent<Renderer>().material.color = color;
-            lr.startWidth = 0.005f; lr.endWidth = 0.005f;
-            lr.SetPosition(0, origin);
-            lr.SetPosition(1, destination);
-        }
-        // END TEST Friday May 10
-
-        */
-        }
+    }
 
     void manageInput(InputField input) {
+
+
+        /*if (Input.anyKey && !this.isHide) {
+            var arr = getHighlightedText(input.text);
+            this.inputColoredText.text = arr[0];
+        }*/
 
         if (Input.GetKeyDown(KeyCode.LeftAlt)) {
             this.isHide = !this.isHide;
@@ -182,35 +162,9 @@ public class playground : MonoBehaviour {
             }
             finally { // send script to backend and deploy new geometries
                 sendMsg(input.text);
-                //Debug.Log("Highlighted text: " + getHighlighted(input.text));
             }
         }
     }
-
-    // TESTING WED 24TH
-    // https://stackoverflow.com/questions/40155890/parse-nested-json-in-unity
-    /*[System.Serializable]
-    public class RootElement {
-        public string key;
-        public RWElement[] elements;
-    }
-    [System.Serializable]
-    public class RWElement
-    {
-        public List<float> position;
-        public int id;
-        public string type;
-        public Shape shape;
-        public int id_from;
-        public int id_to;
-        public List<float> color = new List<float>();
-    }
-    [System.Serializable]
-    public class Shape {
-        public string shapeDescription;
-        public List<float> extent;
-        public List<float> color;
-    }*/
 
     private void changeAlertMessage(string msg, Color color) {
         alertText.text = msg;
@@ -247,17 +201,12 @@ public class playground : MonoBehaviour {
 
             // GENERATE GEOMETRIES
             Debug.Log("NUMBER OF GEOMETRIES!!! " + this.view.elements.Length);
-            for (int i = 0; i < this.view.elements.Length; i++)
-            {
+            for (int i = 0; i < this.view.elements.Length; i++) {
                 Debug.Log("type :" + this.view.elements[i].type);// + " | pos:" + this.view.elements[i].position);
             }
 
             WodenObject obj;
             int index_edges = 0;
-            // elements
-            float average_x = 0f;
-            float average_y = 0f;
-            float average_z = 0f;
 
             float min_z = 1000.0f;
             int element_count = 0;
@@ -305,7 +254,7 @@ public class playground : MonoBehaviour {
                                 "Undefined");
                             break;
                     }
-                    //world.transform.RotateAroundLocal(new Vector3(0, 0, 1), (float)Math.PI);
+
                     // set position, scale, and shifting
                     obj.go.transform.position = new Vector3(
                         this.view.elements[i].position[0] * positioning[0], // + shifting[0],
@@ -317,12 +266,13 @@ public class playground : MonoBehaviour {
                         this.view.elements[i].shape.extent[1] * scaling[1],
                         this.view.elements[i].shape.extent[2] * scaling[2]
                         ));
+
                     // adding other properties
                     Color col = new Color(
-                        this.view.elements[i].shape.color[0],
-                        this.view.elements[i].shape.color[1],
-                        this.view.elements[i].shape.color[2]);
-                    col.a = this.view.elements[i].shape.color[3];
+                        this.view.elements[i].color[0],
+                        this.view.elements[i].color[1],
+                        this.view.elements[i].color[2]);
+                    col.a = this.view.elements[i].color[3];
                     obj.go.GetComponent<Renderer>().material.color = col;
 
                     // add object to the list of objects
@@ -332,21 +282,16 @@ public class playground : MonoBehaviour {
 
                     // adding interaction
                     var interaction = obj.go.AddComponent<InteractiveGameObject>();
-                    //interaction.mode = "Blink";
-                    //interaction.mode = "RigidBody";
-                    //interaction.mode = "Rotate";
+
                     interaction.interactions = this.interactions;
+
                     //if (interaction is popup):
                     interaction.popup_msg = obj.wodenType;
 
-                    average_x += obj.go.transform.position.x;
-                    average_z += obj.go.transform.position.y;
-                    average_z += obj.go.transform.position.z;
                     element_count += 1;
 
                     if (min_z > obj.go.transform.position.y) min_z = obj.go.transform.position.y;
-
-
+                    
                     Debug.Log(
                         "type :" + this.view.elements[i].type +
                         " | shape.shapeDescription: " + this.view.elements[i].shape.shapeDescription +
@@ -359,10 +304,10 @@ public class playground : MonoBehaviour {
                         " | shape.extent: (" + this.view.elements[i].shape.extent[0] +
                         "," + this.view.elements[i].shape.extent[1] +
                         "," + this.view.elements[i].shape.extent[2] + ") " +
-                        " | shape.color : (" + this.view.elements[i].shape.color[0] +
-                        "," + this.view.elements[i].shape.color[1] +
-                        "," + this.view.elements[i].shape.color[2] +
-                        ", alpha=" + this.view.elements[i].shape.color[3] + ") "
+                        " | shape.color : (" + this.view.elements[i].color[0] +
+                        "," + this.view.elements[i].color[1] +
+                        "," + this.view.elements[i].color[2] +
+                        ", alpha=" + this.view.elements[i].color[3] + ") "
                         );
                 }
 
@@ -370,11 +315,11 @@ public class playground : MonoBehaviour {
                 {
                     obj = new WodenObject(new GameObject(), this.view.elements[i].id, "RWEdge");
                     obj.go.tag  = "WodenObj";
-                    obj.go.name = this.view.elements[i].id+""; //"RWEdge";
+                    obj.go.name = this.view.elements[i].id+"";
 
                     var lr = obj.go.AddComponent<LineRenderer>();
                     lr.tag = "Edge";
-                    lr.name = this.view.elements[i].id_from+"-"+this.view.elements[i].id_to;
+                    lr.name = this.view.elements[i].from_id+"-"+this.view.elements[i].to_id;
        
                     lr.transform.parent = world.transform;
                     
@@ -389,13 +334,14 @@ public class playground : MonoBehaviour {
                         + ", " + this.view.elements[i].color[2] + ")"
                         );
 
-                    string id_origin = this.view.elements[i].id_from.ToString();
-                    string id_destination = this.view.elements[i].id_to.ToString();
+                    string id_origin = this.view.elements[i].from_id.ToString();
+                    string id_destination = this.view.elements[i].to_id.ToString();
+                    Debug.Log("Edge which connects ["+id_origin+"] with ["+id_destination+"]");
                     Vector3 origin = GameObject.Find("World/"+id_origin).transform.position;
                     Vector3 destination = GameObject.Find("World/" + id_destination).transform.position;
 
                     Debug.Log(
-                        "type: " + this.view.elements[i].type +
+                        "[EDGE] type: " + this.view.elements[i].type +
                         "from: " + origin + " to: " + destination);
 
                     var dist = Vector3.Distance(origin, destination);
@@ -406,49 +352,24 @@ public class playground : MonoBehaviour {
                     lr.startWidth = 0.005f; lr.endWidth = 0.005f;
                     lr.SetPosition(0, origin);
                     lr.SetPosition(1, destination);
-                   
 
                     index_edges += 1;
-                    
-                    /*
-                    Debug.Log(
-                       "type :" + this.view.elements[i].type +
-                       //" | shape.shapeDescription: " + this.view.elements[i].shape.shapeDescription +
-
-                       " | elements.from_position: (" + this.view.elements[i].from[0] +
-                       ", " + this.view.elements[i].from[1] +
-                       ", " + this.view.elements[i].from[2] + ")" +
-                       " (" + lr.GetPosition(0)[0] +
-                       ", " + lr.GetPosition(0)[1] +
-                       ", " + lr.GetPosition(0)[2] + ") " +
-                       " | elements.to_position: (" + this.view.elements[i].to[0] +
-                       ", " + this.view.elements[i].to[1] +
-                       ", " + this.view.elements[i].to[2] + ")" +
-                       " (" + lr.GetPosition(1)[0] +
-                       ", " + lr.GetPosition(1)[1] +
-                       ", " + lr.GetPosition(1)[2] + ") "
-                       );   */
                 }
 
             }
-
-            Vector3 world_ceontroid_position = new Vector3(average_x/element_count, average_y/element_count, average_z/element_count);
-
+            
             //this.world.transform.position = world_ceontroid_position;
             changeAlertMessage("View loaded correctly", new Color(220, 20, 20));
 
             Vector3 v_shifting = new Vector3(shifting[0], shifting[1], shifting[2]);
             Debug.Log("Minimum Z: " + min_z);
 
-            var distance = 1.0f; //Vector3.Distance(this.originalPosition, new Vector3(0, 0, 0));
-            v_shifting = Camera.main.transform.position + Camera.main.transform.forward * distance;
-            this.world.transform.position = v_shifting;
+            var distance = 1.0f;
+            this.world.transform.position = Camera.main.transform.position + Camera.main.transform.forward * distance; ;
             this.world.transform.RotateAroundLocal(new Vector3(1, 0, 0), (float)Math.PI);
-            //this.world.transform.rotation = Camera.main.transform.rotation;
-            // [pendiente]: solve the rotation problem
+            
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             var msg = "";
             if (e is WebException) {
                 msg = "Server Error";
@@ -517,6 +438,11 @@ public class playground : MonoBehaviour {
 
     }
     public string[] getHighlightedText(string text) {
+         //  Notes
+         //  + Add a boolean for tokens already colored. This variable should be static.
+         //  + Skip "(" to evaluate if the token starts with Uppercase or not
+         //  + Catch the defined variables on the playground.
+
         // string newtext = "";
         char[] delimiterChars = { '\n' };
         string[] reservedWords = new string[] { "RWView", "RWCube", "RWUVSphere", "RWCylinder", "RWXLineLayout", "." };
@@ -525,8 +451,7 @@ public class playground : MonoBehaviour {
         string [] lines = text.Split(delimiterChars);
         string [] plane_lines = new string[lines.Length];
         
-        for (int index_line = 0; index_line < lines.Length; index_line++)
-        {
+        for (int index_line = 0; index_line < lines.Length; index_line++) {
 
             string line = lines[index_line];
             // let's see if there's a "(" directly connected to a char. In that case, it will insert a " ".
