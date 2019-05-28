@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 
 [Serializable]
-public class JSONElement
-{
+public class JSONElement {
     public JSONShape shape;
     public List<float> position;
     public List<float> color = new List<float>();
