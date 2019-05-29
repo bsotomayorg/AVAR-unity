@@ -17,7 +17,8 @@ using System.Collections.Specialized;
 using System.Net.Sockets;
 
 
-public class WodenObject {
+/* [DELETE]
+ * public class WodenObject {
     public GameObject go;
     public string wodenType;
     public Boolean isSelected; // Is this object selected for interaction?
@@ -45,7 +46,9 @@ public class Roassal2Object {
         this.go.transform.position = position;
         this.go.transform.localScale = scale;
     }
-}
+}*/
+
+
 
 public class playground : MonoBehaviour {
     // attrs
@@ -57,6 +60,9 @@ public class playground : MonoBehaviour {
     public Text inputColoredText; // not used yet
     public Text alertText;
     private Boolean isHide;
+
+    public float deltaTime;
+    private float fps;
     
     private Boolean[] parsedCodeBool;
     private string[] parsedCodeText; 
@@ -87,14 +93,18 @@ public class playground : MonoBehaviour {
     private static readonly float r = 1.0f;
 
     InteractiveGameObject world_interaction;
+    
+    float scale_const = (float)25.0f; // divisor
 
     private short[] interactions = {InteractiveGameObject.MOVE, InteractiveGameObject.POPUP}; // Later, this will be read from JSON
 
-    // Start is called before the first frame updatew
+    // Start is called before the first frame update
     void Start() {
         gameObjects = new List<GameObject>();
+        fps = 0.0f;
 
         GameObject.Find("Canvas/PopupPanel").GetComponent<Image>().color = new Color(0, 0, 0, 0);
+        GameObject.Find("Canvas/DebugPanel").GetComponent<Image>().color = new Color(0, 0, 0, 0);
 
         world_interaction = world.AddComponent<InteractiveGameObject>(); // test
         world_interaction.interactions = this.interactions;
@@ -110,12 +120,14 @@ public class playground : MonoBehaviour {
         inputField.ActivateInputField();
 
         //if inputText.isEnabled then
-        inputText.color = new Color(0.0f, 0.0f, 0.0f, 1.0f); // BORRAR Monday May 6th 
+        inputText.color = new Color(0.0f, 0.0f, 0.0f, 1.0f);
     }
 
     // Update is called once per frame
     void Update() {
         manageInput(inputField);
+
+        if(!inputField.enabled) showDebug();
 
         // debug
         Vector3 canvasPosition = GameObject.FindObjectOfType<Canvas>().transform.position;
@@ -169,13 +181,18 @@ public class playground : MonoBehaviour {
             try {   
                 // clean previous objects (if they exist)
                 var objects = GameObject.FindGameObjectsWithTag("WodenObj");
+                var rt2_objects = GameObject.FindGameObjectsWithTag("Roassal2Obj");
                 var edges = GameObject.FindGameObjectsWithTag("Edge");
 
                 foreach (GameObject o in objects)
                     Destroy(o.gameObject);
 
+                foreach (GameObject o in rt2_objects)
+                    Destroy(o.gameObject);
+
                 foreach (GameObject o in edges)
                     Destroy(o.gameObject);
+                
             }
             finally { // send script to backend and deploy new geometries
                 sendMsg(input.text);
@@ -189,8 +206,9 @@ public class playground : MonoBehaviour {
     }
 
     public void sendMsg(string script) {
-        Debug.Log("SEND MSG: shifting:" + shifting[0] +"," + shifting[1] + "," + shifting[2] +"."); 
-        try {
+        Debug.Log("SEND MSG: shifting:" + shifting[0] +"," + shifting[1] + "," + shifting[2] +".");
+        try
+        {
             // SEND POST
             var request = (HttpWebRequest)WebRequest.Create(IP + ":" + port + "/");
             request.Timeout = 3000;
@@ -214,331 +232,16 @@ public class playground : MonoBehaviour {
 
             this.view = JsonUtility.FromJson<JSONRootElement>(responseString);
             Debug.LogWarning("JSON contains " + this.view.elements.Length + " lines");
-
-            // GENERATE GEOMETRIES
-
-            WodenObject obj;
-            Roassal2Object robj;
-            int index_edges = 0;
-
-            float min_z = 1000.0f;
-            int element_count = 0;
-
-
-            this.world.transform.position = new Vector3(0, 0, 0);
-
-            //Scale? (if it is possible to do on Pharo, then that's better!) ####
-            float maxX = 1.0f;
-            float maxZ = 1.0f;
-
-            for (int i = 0; i < this.view.elements.Length; i++) {
-                //test Tue, May 28th
-                Debug.Log("type: " + this.view.elements[i].type);
-                if (this.view.elements[i].type == "RTelement")
-                {
-                    if (maxX < this.view.elements[i].position[0])
-                        maxX = this.view.elements[i].position[0];
-                    if (maxZ < this.view.elements[i].position[1])
-                        maxZ = this.view.elements[i].position[1];
-                }
-            }
-            Debug.Log("MaxX: " + maxX + ", maxZ: " + maxZ);
-
-
-            for (int i = 0; i < this.view.elements.Length; i++)
-            {
-
-                if (this.view.elements[i].type == "camera")
-                {
-                    Debug.Log("type :" + this.view.elements[i].type + " | pos:" + this.view.elements[i].position);
-                }
-                else if (this.view.elements[i].type == "element")
-                {
-                    if (engine == "NONE") engine = "WODEN";
-                    Debug.Log("A Woden 'element'");
-                    switch (this.view.elements[i].shape.shapeDescription)
-                    {
-                        case "cube":
-                            obj = new WodenObject(
-                                GameObject.CreatePrimitive(PrimitiveType.Cube),
-                                this.view.elements[i].id,
-                                "RWCube"
-                                );
-                            break;
-                        case "UVSphere":
-                            obj = new WodenObject(
-                                GameObject.CreatePrimitive(PrimitiveType.Sphere),
-                                this.view.elements[i].id,
-                                "RWUVSphere");
-                            break;
-                        case "cylinder":
-                            obj = new WodenObject(
-                                GameObject.CreatePrimitive(PrimitiveType.Cylinder),
-                                this.view.elements[i].id,
-                                "RWCylinder");
-                            break;
-                        default:
-                            // by default a cube is deployed
-                            obj = new WodenObject(
-                                GameObject.CreatePrimitive(PrimitiveType.Cube),
-                                this.view.elements[i].id,
-                                "Undefined");
-                            break;
-                    }
-
-                    // set position, scale, and shifting
-                    obj.go.transform.position = new Vector3(
-                        this.view.elements[i].position[0] * positioning[0], // + shifting[0],
-                        this.view.elements[i].position[1] * positioning[1], // + shifting[1],
-                        this.view.elements[i].position[2] * positioning[2] // + shifting[2]
-                        );
-                    obj.go.transform.localScale = Vector3.Scale(transform.localScale, new Vector3(
-                        this.view.elements[i].shape.extent[0] * scaling[0],
-                        this.view.elements[i].shape.extent[1] * scaling[1],
-                        this.view.elements[i].shape.extent[2] * scaling[2]
-                        ));
-
-                    // adding other properties
-                    Color col = new Color(
-                        this.view.elements[i].color[0],
-                        this.view.elements[i].color[1],
-                        this.view.elements[i].color[2]);
-                    col.a = this.view.elements[i].color[3];
-                    obj.go.GetComponent<Renderer>().material.color = col;
-
-                    // add object to the list of objects
-                    obj.go.tag = "WodenObj";
-                    obj.go.transform.parent = world.transform;
-                    obj.go.name = this.view.elements[i].id+"";
-
-                    // adding interaction
-                    var interaction = obj.go.AddComponent<InteractiveGameObject>();
-
-                    interaction.interactions = this.interactions;
-
-                    //if (interaction is popup):
-                    interaction.popup_msg = obj.wodenType;
-
-                    element_count += 1;
-
-                    if (min_z > obj.go.transform.position.y) min_z = obj.go.transform.position.y;
-                    
-                    Debug.Log(
-                        "type :" + this.view.elements[i].type +
-                        " | shape.shapeDescription: " + this.view.elements[i].shape.shapeDescription +
-                        " | pos: (" + this.view.elements[i].position[0] +
-                        "," + this.view.elements[i].position[1] +
-                        "," + this.view.elements[i].position[2] + ")" +
-                        " | real (" + obj.go.transform.position[0] +
-                        "," + obj.go.transform.position[1] +
-                        "," + obj.go.transform.position[2] + ")" +
-                        " | shape.extent: (" + this.view.elements[i].shape.extent[0] +
-                        "," + this.view.elements[i].shape.extent[1] +
-                        "," + this.view.elements[i].shape.extent[2] + ") " +
-                        " | shape.color : (" + this.view.elements[i].color[0] +
-                        "," + this.view.elements[i].color[1] +
-                        "," + this.view.elements[i].color[2] +
-                        ", alpha=" + this.view.elements[i].color[3] + ") "
-                        );
-                }
-                else if (this.view.elements[i].type == "edge")
-                {
-                    obj = new WodenObject(new GameObject(), this.view.elements[i].id, "RWEdge");
-                    obj.go.tag  = "WodenObj";
-                    obj.go.name = this.view.elements[i].id+"";
-
-                    var lr = obj.go.AddComponent<LineRenderer>();
-                    lr.tag = "Edge";
-                    lr.name = this.view.elements[i].from_id+"-"+this.view.elements[i].to_id;
-       
-                    lr.transform.parent = world.transform;
-                    
-                    Color color = new Color(
-                        this.view.elements[i].color[0],
-                        this.view.elements[i].color[1],
-                        this.view.elements[i].color[2]
-                        );
-                    Debug.Log(
-                        "EdgeColor: ("+ this.view.elements[i].color[0]
-                        + ", " + this.view.elements[i].color[1]
-                        + ", " + this.view.elements[i].color[2] + ")"
-                        );
-
-                    string id_origin = this.view.elements[i].from_id.ToString();
-                    string id_destination = this.view.elements[i].to_id.ToString();
-                    Debug.Log("Edge which connects ["+id_origin+"] with ["+id_destination+"]");
-                    Vector3 origin = GameObject.Find("World/"+id_origin).transform.position;
-                    Vector3 destination = GameObject.Find("World/" + id_destination).transform.position;
-
-                    Debug.Log(
-                        "[EDGE] type: " + this.view.elements[i].type +
-                        "from: " + origin + " to: " + destination);
-
-                    var dist = Vector3.Distance(origin, destination);
-                    Vector3 pointAlongLine = Vector3.Normalize(destination - origin) + origin;
-                    
-                    lr.startColor = color; lr.endColor = color;
-                    obj.go.GetComponent<Renderer>().material.color = color;
-                    lr.startWidth = 0.005f; lr.endWidth = 0.005f;
-                    lr.SetPosition(0, origin);
-                    lr.SetPosition(1, destination);
-
-                    index_edges += 1;
-                }
-                else if (this.view.elements[i].type == "RTelement")
-                {
-                    float scale_const = (float) 50.0f; // divisor
-
-                    // Roassal2 objects
-                    if (engine == "NONE") engine = "ROASSAL2";
-                    Debug.Log("A Roassal2 'element'");
-                    Debug.Log("[RTElement] id=" + this.view.elements[i].id);
-                    Debug.Log("[RTElement] shape=" + this.view.elements[i].shape.shapeDescription);
-                    Debug.Log("[RTElement] extent= [" + 
-                        this.view.elements[i].shape.extent[0]+", " +
-                        this.view.elements[i].shape.extent[1]+"]");
-
-                    Vector3 pos = new Vector3( // position
-                                    (this.view.elements[i].position[0] * positioning[0]) / scale_const + shifting[0],
-                                    (this.view.elements[i].position[1] * positioning[1]) / scale_const + shifting[1],
-                                    0.00002f
-                                    );
-                    Vector3 scale = new Vector3( // scale
-                            this.view.elements[i].shape.extent[0] * scaling[0] / scale_const,
-                            0.00002f,
-                            this.view.elements[i].shape.extent[1] * scaling[1] / scale_const
-                            );
-                    Debug.Log("[RTElement] pos" + pos);
-                    Debug.Log("[RTElement] scale" + scale);
-
-                    switch (this.view.elements[i].shape.shapeDescription)
-                    {
-                        case "RTEllipse":
-                            
-                            robj = new Roassal2Object(
-                                GameObject.CreatePrimitive(PrimitiveType.Cylinder),
-                                this.view.elements[i].id,
-                                "RTEllipse",
-                                pos,
-                                new Vector3( // scale
-                                    this.view.elements[i].shape.extent[0] * scaling[0] / scale_const,
-                                    0.00002f,
-                                    this.view.elements[i].shape.extent[1] * scaling[1] / scale_const
-                                    )
-                                );
-                            robj.go.transform.RotateAroundLocal(new Vector3(1, 0, 0), (float)Math.PI/2.0f);
-                            break;
-                        case "RTBox":
-                            robj = new Roassal2Object(
-                                GameObject.CreatePrimitive(PrimitiveType.Cube),
-                                this.view.elements[i].id,
-                                "RTBox",
-                                pos,
-                                new Vector3( // scale
-                                    this.view.elements[i].shape.extent[0] * scaling[0] / scale_const,
-                                    this.view.elements[i].shape.extent[1] * scaling[1] / scale_const,
-                                    0.00002f
-                                    )
-                                );
-                            break;
-                        default:
-                            // by default a cube is deployed
-                            robj = new Roassal2Object(
-                                GameObject.CreatePrimitive(PrimitiveType.Cube),
-                                this.view.elements[i].id,
-                                "Undefined",
-                                new Vector3(0,0,0),
-                                new Vector3(0,0,0)
-                            );
-                            break;
-                    }
-
-                    robj.go.tag = "Roassal2Obj";
-                    robj.go.transform.parent = world.transform;
-                    robj.go.name = this.view.elements[i].id + "";
-
-                    Debug.Log("RObj created: "+ robj.roassalType);
-
-                    Debug.Log(
-                        "type :" + this.view.elements[i].type +
-                        " | shape.shapeDescription: " + this.view.elements[i].shape.shapeDescription +
-                        " | pos: (" + this.view.elements[i].position[0] +
-                        "," + this.view.elements[i].position[1] + ")" +
-                        " | real (" + robj.go.transform.position[0] +
-                        "," + robj.go.transform.position[1] +")" +
-                        " | shape.extent: (" + this.view.elements[i].shape.extent[0] +
-                        "," + this.view.elements[i].shape.extent[1] + ") " +
-                        " | shape.color : (" + this.view.elements[i].color[0] +
-                        "," + this.view.elements[i].color[1] +
-                        "," + this.view.elements[i].color[2] +
-                        ", alpha=" + this.view.elements[i].color[3] + ") "
-                        );
-                    
-                }
-
-                else if (this.view.elements[i].type == "RTedge") {
-                    obj = new WodenObject(new GameObject(), this.view.elements[i].id, "RTEdge");
-                    obj.go.tag = "Roassal2Obj";
-                    obj.go.name = this.view.elements[i].id + "";
-
-                    var lr = obj.go.AddComponent<LineRenderer>();
-                    lr.tag = "Edge";
-                    lr.name = this.view.elements[i].from_id + "-" + this.view.elements[i].to_id;
-
-                    lr.transform.parent = world.transform;
-
-                    Color color = Color.white; /*new Color(
-                        this.view.elements[i].color[0],
-                        this.view.elements[i].color[1],
-                        this.view.elements[i].color[2]
-                        );*/
-                    Debug.Log(
-                        "EdgeColor: (" + this.view.elements[i].color[0]
-                        + ", " + this.view.elements[i].color[1]
-                        + ", " + this.view.elements[i].color[2] + ")"
-                        );
-
-                    string id_origin = this.view.elements[i].from_id.ToString();
-                    string id_destination = this.view.elements[i].to_id.ToString();
-                    Debug.Log("Edge which connects [" + id_origin + "] with [" + id_destination + "]");
-                    Vector3 origin = GameObject.Find("World/" + id_origin).transform.position;
-                    Vector3 destination = GameObject.Find("World/" + id_destination).transform.position;
-
-                    Debug.Log(
-                        "[EDGE] type: " + this.view.elements[i].type +
-                        "from: " + origin + " to: " + destination);
-
-                    var dist = Vector3.Distance(origin, destination);
-                    Vector3 pointAlongLine = Vector3.Normalize(destination - origin) + origin;
-
-                    lr.startColor = color; lr.endColor = color;
-                    obj.go.GetComponent<Renderer>().material.color = color;
-                    lr.startWidth = 0.001f; lr.endWidth = 0.001f;
-                    lr.SetPosition(0, origin);
-                    lr.SetPosition(1, destination);
-
-                    index_edges += 1;
-                }
-            }
-            
-            //this.world.transform.position = world_ceontroid_position;
-            changeAlertMessage("View loaded correctly", new Color(220, 20, 20));
-
-            Vector3 v_shifting = new Vector3(shifting[0], shifting[1], shifting[2]);
-            //if(maxX !=0.0f && maxZ!=0.0f)
-
-            var distance = 1.0f;
-            this.world.transform.position = Camera.main.transform.position + Camera.main.transform.forward * distance; ;
-            if (this.engine == "WODEN")
-                this.world.transform.RotateAroundLocal(new Vector3(1, 0, 0), (float)Math.PI);
-            
         }
-        catch (Exception e) {
+        catch (Exception e)
+        {
             var msg = "";
-            if (e is WebException) {
+            if (e is WebException)
+            {
                 msg = "Server Error";
             }
-            else {
+            else
+            {
                 msg = "Error";
             }
             msg += "\n" + e.Message;
@@ -548,6 +251,405 @@ public class playground : MonoBehaviour {
             Debug.Log(msg);
 
         };
+
+
+        // GENERATE GEOMETRIES
+
+        AVAR_Element obj;
+        AVAR_Edge edge;
+        //Roassal2Object robj; [DELETE]
+        int index_edges = 0;
+
+        float min_z = 1000.0f;
+        int element_count = 0;
+
+        this.world.transform.position = new Vector3(0, 0, 0);
+
+        //Scale? (if it is possible to do on Pharo, then that's better!) ####
+        float maxX = 1.0f;
+        float maxZ = 1.0f;
+
+        for (int i = 0; i < this.view.elements.Length; i++) {
+            //test Tue, May 28th
+            Debug.Log("type: " + this.view.elements[i].type);
+            if (this.view.elements[i].type == "RTelement")
+            {
+                if (maxX < this.view.elements[i].position[0])
+                    maxX = this.view.elements[i].position[0];
+                if (maxZ < this.view.elements[i].position[1])
+                    maxZ = this.view.elements[i].position[1];
+            }
+        }
+        Debug.Log("MaxX: " + maxX + ", maxZ: " + maxZ);
+
+
+        for (int i = 0; i < this.view.elements.Length; i++)
+        {
+
+            if (this.view.elements[i].type == "camera")
+            {
+                Debug.Log("type :" + this.view.elements[i].type + " | pos:" + this.view.elements[i].position);
+            }
+            else if (this.view.elements[i].type == "element")
+            {
+                if (engine == "NONE") engine = "WODEN";
+                Debug.Log("A Woden 'element'");
+
+                Color col = new Color(
+                    this.view.elements[i].color[0],
+                    this.view.elements[i].color[1],
+                    this.view.elements[i].color[2]);
+                col.a = this.view.elements[i].color[3];
+
+                obj = new AVAR_Element(
+                    this.view.elements[i].id,
+                    this.view.elements[i].shape.shapeDescription,
+                        new Vector3(
+                        this.view.elements[i].position[0] * positioning[0], //+ shifting[0],
+                        this.view.elements[i].position[1] * positioning[1], // + shifting[1],
+                        this.view.elements[i].position[2] * positioning[2] // + shifting[2]
+                        ),
+                    Vector3.Scale(transform.localScale, new Vector3(
+                        this.view.elements[i].shape.extent[0] * scaling[0],
+                        this.view.elements[i].shape.extent[1] * scaling[1],
+                        this.view.elements[i].shape.extent[2] * scaling[2]
+                        )),
+                    col
+                    );
+                /* [DELETE] switch (this.view.elements[i].shape.shapeDescription)
+                {
+                    case "cube":
+                        obj = new AVARObject(
+                            GameObject.CreatePrimitive(PrimitiveType.Cube),
+                            this.view.elements[i].id,
+                            "RWCube",
+                            new Vector3(
+                                this.view.elements[i].position[0] * positioning[0], // + shifting[0],
+                                this.view.elements[i].position[1] * positioning[1], // + shifting[1],
+                                this.view.elements[i].position[2] * positioning[2] // + shifting[2]
+                            ),
+                            Vector3.Scale(transform.localScale, new Vector3(
+                                this.view.elements[i].shape.extent[0] * scaling[0],
+                                this.view.elements[i].shape.extent[1] * scaling[1],
+                                this.view.elements[i].shape.extent[2] * scaling[2]
+                                )),
+                        "WODEN"
+                            );
+                        break;
+                    case "UVSphere":
+                        obj = new AVARObject(
+                            GameObject.CreatePrimitive(PrimitiveType.Sphere),
+                            this.view.elements[i].id,
+                            "RWUVSphere",
+                            "WODEN"
+                            );
+                        break;
+                    case "cylinder":
+                        obj = new WodenObject(
+                            GameObject.CreatePrimitive(PrimitiveType.Cylinder),
+                            this.view.elements[i].id,
+                            "RWCylinder");
+                        break;
+                    default:
+                        // by default a cube is deployed
+                        obj = new WodenObject(
+                            GameObject.CreatePrimitive(PrimitiveType.Cube),
+                            this.view.elements[i].id,
+                            "Undefined");
+                        break;
+                }
+
+                // set position, scale, and shifting
+                obj.go.transform.position = new Vector3(
+                    this.view.elements[i].position[0] * positioning[0], // + shifting[0],
+                    this.view.elements[i].position[1] * positioning[1], // + shifting[1],
+                    this.view.elements[i].position[2] * positioning[2] // + shifting[2]
+                    );
+                obj.go.transform.localScale = Vector3.Scale(transform.localScale, new Vector3(
+                    this.view.elements[i].shape.extent[0] * scaling[0],
+                    this.view.elements[i].shape.extent[1] * scaling[1],
+                    this.view.elements[i].shape.extent[2] * scaling[2]
+                    ));
+                */
+
+                // adding other properties
+                    
+                //obj.go.GetComponent<Renderer>().material.color = col;
+
+                // add object to the list of objects
+                //obj.go.tag = "WodenObj";
+                //obj.go.transform.parent = world.transform;
+                obj.transformParent(world);
+                //obj.go.name = this.view.elements[i].id+"";
+
+                // adding interaction
+                var interaction = obj.go.AddComponent<InteractiveGameObject>();
+                interaction.interactions = this.interactions;
+                    
+                //if (interaction is popup):
+                interaction.popup_msg = obj.type;
+
+                element_count += 1;
+
+                //if (min_z > obj.go.transform.position.y) min_z = obj.go.transform.position.y;
+                    
+                /*Debug.Log(
+                    "type :" + this.view.elements[i].type +
+                    " | shape.shapeDescription: " + this.view.elements[i].shape.shapeDescription +
+                    " | pos: (" + this.view.elements[i].position[0] +
+                    "," + this.view.elements[i].position[1] +
+                    "," + this.view.elements[i].position[2] + ")" +
+                    " | real (" + obj.go.transform.position[0] +
+                    "," + obj.go.transform.position[1] +
+                    "," + obj.go.transform.position[2] + ")" +
+                    " | shape.extent: (" + this.view.elements[i].shape.extent[0] +
+                    "," + this.view.elements[i].shape.extent[1] +
+                    "," + this.view.elements[i].shape.extent[2] + ") " +
+                    " | shape.color : (" + this.view.elements[i].color[0] +
+                    "," + this.view.elements[i].color[1] +
+                    "," + this.view.elements[i].color[2] +
+                    ", alpha=" + this.view.elements[i].color[3] + ") "
+                    );*/
+            }
+            else if (this.view.elements[i].type == "edge")
+            {
+                Color col = new Color(
+                        this.view.elements[i].color[0],
+                        this.view.elements[i].color[1],
+                        this.view.elements[i].color[2]
+                        );
+                col.a = this.view.elements[i].color[3];
+                edge = new AVAR_Edge(
+                    this.view.elements[i].from_id,
+                    this.view.elements[i].to_id,
+                    this.view.elements[i].type,
+                    0.005f,
+                    col
+                    );
+
+                edge.transformParent(world);
+
+                //if (this.DEBUG)
+                    edge.print();
+
+                /*Debug.Log(
+                    "EdgeColor: ("+ this.view.elements[i].color[0]
+                    + ", " + this.view.elements[i].color[1]
+                    + ", " + this.view.elements[i].color[2] + ")"
+                    );
+
+                string id_origin = this.view.elements[i].from_id.ToString();
+                string id_destination = this.view.elements[i].to_id.ToString();
+                Debug.Log("Edge which connects ["+id_origin+"] with ["+id_destination+"]");
+                Vector3 origin = GameObject.Find("World/"+id_origin).transform.position;
+                Vector3 destination = GameObject.Find("World/" + id_destination).transform.position;
+
+                Debug.Log(
+                    "[EDGE] type: " + this.view.elements[i].type +
+                    "from: " + origin + " to: " + destination);
+
+                var dist = Vector3.Distance(origin, destination);
+                Vector3 pointAlongLine = Vector3.Normalize(destination - origin) + origin;
+                    
+                lr.startColor = color; lr.endColor = color;
+                obj.go.GetComponent<Renderer>().material.color = color;
+                lr.startWidth = 0.005f; lr.endWidth = 0.005f;
+                lr.SetPosition(0, origin);
+                lr.SetPosition(1, destination);*/
+
+                index_edges += 1;
+            }
+            else if (this.view.elements[i].type == "RTelement")
+            {
+                    
+                Color col = new Color(
+                    this.view.elements[i].color[0],
+                    this.view.elements[i].color[1],
+                    this.view.elements[i].color[2]
+                    );
+
+                // Roassal2 objects
+                if (engine == "NONE") engine = "ROASSAL2"; 
+                    
+                // Create a Roassal2 element
+                obj = new AVAR_Element(
+                    this.view.elements[i].id,
+                    this.view.elements[i].shape.shapeDescription,
+                    new Vector3( // position
+                        (this.view.elements[i].position[0] * positioning[0]) / scale_const, // + shifting[0],
+                        (this.view.elements[i].position[1] * positioning[1]) / scale_const // + shifting[1],
+                        //shifting[2]
+                        ),
+                    new Vector3( // scale
+                        this.view.elements[i].shape.extent[0] * scaling[0] / scale_const,
+                        this.view.elements[i].shape.extent[1] * scaling[1] / scale_const,
+                        0.00002f
+                        ),
+                    col
+                    );
+                /*
+                Vector3 pos = new Vector3( // position
+                                (this.view.elements[i].position[0] * positioning[0]) / scale_const + shifting[0],
+                                (this.view.elements[i].position[1] * positioning[1]) / scale_const + shifting[1],
+                                0.00002f
+                                );
+                Vector3 scale = new Vector3( // scale
+                        this.view.elements[i].shape.extent[0] * scaling[0] / scale_const,
+                        0.00002f,
+                        this.view.elements[i].shape.extent[1] * scaling[1] / scale_const
+                        );
+                Debug.Log("[RTElement] pos" + pos);
+                Debug.Log("[RTElement] scale" + scale);
+
+                switch (this.view.elements[i].shape.shapeDescription)
+                {
+                    case "RTEllipse":
+                            
+                        edge = new Roassal2Object(
+                            GameObject.CreatePrimitive(PrimitiveType.Cylinder),
+                            this.view.elements[i].id,
+                            "RTEllipse",
+                            pos,
+                            new Vector3( // scale
+                                this.view.elements[i].shape.extent[0] * scaling[0] / scale_const,
+                                0.00002f,
+                                this.view.elements[i].shape.extent[1] * scaling[1] / scale_const
+                                )
+                            );
+                        robj.go.transform.RotateAroundLocal(new Vector3(1, 0, 0), (float)Math.PI/2.0f);
+                        break;
+                    case "RTBox":
+                        robj = new Roassal2Object(
+                            GameObject.CreatePrimitive(PrimitiveType.Cube),
+                            this.view.elements[i].id,
+                            "RTBox",
+                            pos,
+                            new Vector3( // scale
+                                this.view.elements[i].shape.extent[0] * scaling[0] / scale_const,
+                                this.view.elements[i].shape.extent[1] * scaling[1] / scale_const,
+                                0.00002f
+                                )
+                            );
+                        break;
+                    default:
+                        // by default a cube is deployed
+                        robj = new Roassal2Object(
+                            GameObject.CreatePrimitive(PrimitiveType.Cube),
+                            this.view.elements[i].id,
+                            "Undefined",
+                            new Vector3(0,0,0),
+                            new Vector3(0,0,0)
+                        );
+                        break;
+                }
+
+                robj.go.tag = "Roassal2Obj";
+                robj.go.transform.parent = world.transform;
+                robj.go.name = this.view.elements[i].id + "";
+
+
+                // adding other properties
+                Color col = new Color(
+                    this.view.elements[i].color[0],
+                    this.view.elements[i].color[1],
+                    this.view.elements[i].color[2]);
+                col.a = this.view.elements[i].color[3];
+                robj.go.GetComponent<Renderer>().material.color = col;
+                */
+                /*Debug.Log("RObj created: "+ robj.roassalType);
+                Debug.Log(
+                    "type :" + this.view.elements[i].type +
+                    " | shape.shapeDescription: " + this.view.elements[i].shape.shapeDescription +
+                    " | pos: (" + this.view.elements[i].position[0] +
+                    "," + this.view.elements[i].position[1] + ")" +
+                    " | real (" + robj.go.transform.position[0] +
+                    "," + robj.go.transform.position[1] +")" +
+                    " | shape.extent: (" + this.view.elements[i].shape.extent[0] +
+                    "," + this.view.elements[i].shape.extent[1] + ") " +
+                    " | shape.color : (" + this.view.elements[i].color[0] +
+                    "," + this.view.elements[i].color[1] +
+                    "," + this.view.elements[i].color[2] +
+                    ", alpha=" + this.view.elements[i].color[3] + ") "
+                    );
+                */
+
+
+                obj.transformParent(world);
+            }
+
+            else if (this.view.elements[i].type == "RTedge") {
+                Color col = new Color(
+                    this.view.elements[i].color[0],
+                    this.view.elements[i].color[1],
+                    this.view.elements[i].color[2]
+                    );
+
+                edge = new AVAR_Edge(
+                    this.view.elements[i].to_id,
+                    this.view.elements[i].from_id,
+                    this.view.elements[i].type,
+                    0.001f,
+                    col
+                    ); 
+
+                edge.transformParent(world);
+
+                /*
+                obj.go.tag = "Roassal2Obj";
+                obj.go.name = this.view.elements[i].id + "";
+
+                var lr = obj.go.AddComponent<LineRenderer>();
+                lr.tag = "Edge";
+                lr.name = this.view.elements[i].from_id + "-" + this.view.elements[i].to_id;
+
+                lr.transform.parent = world.transform;
+
+                Color color = Color.white;
+
+                Debug.Log(
+                    "EdgeColor: (" + this.view.elements[i].color[0]
+                    + ", " + this.view.elements[i].color[1]
+                    + ", " + this.view.elements[i].color[2] + ")"
+                    );
+
+                string id_origin = this.view.elements[i].from_id.ToString();
+                string id_destination = this.view.elements[i].to_id.ToString();
+                Debug.Log("Edge which connects [" + id_origin + "] with [" + id_destination + "]");
+                Vector3 origin = GameObject.Find("World/" + id_origin).transform.position;
+                Vector3 destination = GameObject.Find("World/" + id_destination).transform.position;
+
+                Debug.Log(
+                    "[EDGE] type: " + this.view.elements[i].type +
+                    "from: " + origin + " to: " + destination);
+
+                var dist = Vector3.Distance(origin, destination);
+                Vector3 pointAlongLine = Vector3.Normalize(destination - origin) + origin;
+
+                lr.startColor = color; lr.endColor = color;
+                obj.go.GetComponent<Renderer>().material.color = color;
+                lr.startWidth = 0.001f; lr.endWidth = 0.001f;
+                lr.SetPosition(0, origin);
+                lr.SetPosition(1, destination);
+                */ 
+
+                index_edges += 1;
+            }
+        }
+            
+        //this.world.transform.position = world_ceontroid_position;
+        changeAlertMessage("View loaded correctly", new Color(220, 20, 20));
+
+        Vector3 v_shifting = new Vector3(shifting[0], shifting[1], shifting[2]);
+        //if(maxX !=0.0f && maxZ!=0.0f)
+
+        var distance = 1.0f;
+        this.world.transform.position = Camera.main.transform.position + Camera.main.transform.forward * distance ;
+        if (this.engine == "WODEN") {
+            this.world.transform.RotateAroundLocal(new Vector3(1, 0, 0), (float)Math.PI);
+        } else
+        {
+            this.world.transform.position = v_shifting;
+        }
         
         
     }
@@ -704,5 +806,12 @@ public class playground : MonoBehaviour {
 
         return new string [] {original_text, highlighted_text } ;
 
+    }
+
+    private void showDebug()
+    {
+        var msg = "FPS: " + String.Format("{0:0.##}", this.fps);
+        GameObject.Find("Canvas/DebugPanel/Debug").GetComponent<Text>().text = msg;
+        GameObject.Find("Canvas/DebugPanel").GetComponent<Image>().color = new Color(0.5f, 0.5f, 0.5f, 0.7f);
     }
 }
