@@ -15,9 +15,7 @@ public class InteractiveGameObject : MonoBehaviour {
     Vector3 originalPosition;
     float originalDistance;
     Vector3 cameraOriginalPosition;
-
-    public float deltaTime;
-    float fps;
+    
 
     void Awake() {
         originalPosition = this.transform.position;
@@ -36,12 +34,11 @@ public class InteractiveGameObject : MonoBehaviour {
     void Update() {
         // interaction when the object is just gazed
         if(Array.IndexOf(this.interactions,POPUP) >= 0) {
-            this.showPopup();
+            this.showPopup(this.popup_msg);
         }
 
         if (isActive) { // interactinos when the the object is selected
-
-            showPopup();
+            
 
             foreach (short interaction in this.interactions) { 
                 switch (interaction) {
@@ -55,7 +52,7 @@ public class InteractiveGameObject : MonoBehaviour {
                         moveElement();
                         break;
                     case POPUP:
-                        this.showPopup();
+                        this.showPopup(this.popup_msg);
                         break;
                     default:
                         //createPopUp("No interaction defined");
@@ -98,9 +95,9 @@ public class InteractiveGameObject : MonoBehaviour {
         }
     }
 
-    private void showPopup() {
+    /*private void showPopup() {
         this.showPopup( this.popup_msg );
-    }
+    }*/
 
     private void setInactive() {
         if (this.name != "World" && this.isActive) {
@@ -120,18 +117,22 @@ public class InteractiveGameObject : MonoBehaviour {
         if (this.name != "World"){ // moving a woden object
             var distance = Vector3.Distance(this.originalPosition, Camera.main.transform.position);
             this.transform.position = Camera.main.transform.position + Camera.main.transform.forward * distance;
-
         } else { // moving the world
             var distance = Vector3.Distance(this.originalPosition, Camera.main.transform.position);
 
             this.transform.position = Camera.main.transform.position + Camera.main.transform.forward * distance;
 
-            // let's compute FPS
-            this.deltaTime += (Time.deltaTime - this.deltaTime) * 0.1f;
-            this.fps = 1.0f / deltaTime;
+            // experimental (Wed, May 29th)
+            var camera_forward = Camera.main.transform.forward;
+            var object_forward = this.transform.forward;
 
-            this.showPopup("[mv](world) to" + this.transform.position + "FPS: " + String.Format("{0:0.##}", this.fps)); // + "|"+ Camera.main.transform.forward.normalized + "|"+distance);
-            }
+            //this.transform.Rotate(Camera.main.transform.rotation.eulerAngles); 
+            this.transform.forward = new Vector3(
+                    camera_forward.x,
+                    object_forward.y,
+                    object_forward.z
+                );
+        }
 
     }
 
