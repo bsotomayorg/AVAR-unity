@@ -11,7 +11,7 @@ public class AVAR_Edge
     private Vector3 origin_pos;
     private Vector3 destination_pos;
     
-    public AVAR_Edge(int id_origin, int id_destination, string type, float width, Color color)
+    public AVAR_Edge(string id_origin, string id_destination, string type, float width, Color color, GameObject world)
     {
         this.go = new GameObject();
 
@@ -33,15 +33,17 @@ public class AVAR_Edge
         this.lr.startWidth = width; this.lr.endWidth = width;
 
         // set position
-        this.origin_pos = GameObject.Find("World/" + id_origin).transform.position;
-        this.destination_pos = GameObject.Find("World/" + id_destination).transform.position;
+        Debug.Log("LOOOKING FOR: World / " + world.name + "/" + id_origin);
+        this.origin_pos = GameObject.Find("World/" + world.name + "/" + id_origin).transform.position;
+        this.destination_pos = GameObject.Find("World/" + world.name + "/" + id_destination).transform.position;
         this.lr.SetPosition(0, this.origin_pos);
         this.lr.SetPosition(1, this.destination_pos);
 
         // set tag and name
         this.go.tag = "Edge";
         this.go.name = id_origin + "-" + id_destination;
-        
+
+        this.transformParent(world);
     }
 
     public void print()

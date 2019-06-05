@@ -6,9 +6,10 @@ public class JSONElement {
     public JSONShape shape;
     public List<float> position;
     public List<float> color = new List<float>();
-    public int id;
+    public string id;
     public string type;
+    public List<string> interactions;
 
-    public int from_id;
-    public int to_id;
+    public string from_id;
+    public string to_id;
 }

@@ -15,63 +15,47 @@ using System.IO;
 
 using System.Collections.Specialized;
 using System.Net.Sockets;
-
-
-/* [DELETE]
- * public class WodenObject {
-    public GameObject go;
-    public string wodenType;
-    public Boolean isSelected; // Is this object selected for interaction?
-    int id;
-    
-    public WodenObject(GameObject go, int id, string wodenType) {
-        this.go = go;
-        this.id = id;
-        this.wodenType = wodenType;
-        this.isSelected = false;
-    }
-}
-
-public class Roassal2Object {
-    public GameObject go;
-    public string roassalType;
-    public Boolean isSelected;
-    int id;
-
-    public Roassal2Object(GameObject go, int id, string roassalType, Vector3 position, Vector3 scale) {
-        this.go = go;
-        this.id = id;
-        this.roassalType = roassalType;
-        this.isSelected = false;
-        this.go.transform.position = position;
-        this.go.transform.localScale = scale;
-    }
-}*/
-
-
+using System.Text.RegularExpressions;
 
 public class playground : MonoBehaviour {
     // attrs
     public GameObject world;
     //public Hashtable world_edges;
+    private short views_count = 0; // number of views 
 
     public InputField inputField;
     public Text inputText;
     public Text inputColoredText; // not used yet
     public Text alertText;
     private Boolean isHide;
+    public GameObject debugPanel;
+    public Text debugText;
 
-    public float deltaTime;
-    private float fps;
-    
+    // debug
+    private Boolean DEBUG = true;
+    private double fps;
+    private double dt = 0.0;
+    private short frameCount = 0;
+    private float updateRate = 1.0f;
+
+    // highlighted text
     private Boolean[] parsedCodeBool;
-    private string[] parsedCodeText; 
+    private string[] parsedCodeText;
+    TextHighlighter th;
 
-    private string textFieldString = "text field";
-    private string textAreaString  = "text area";
+    // text handlying
+    private string textFieldString = "";
+    private string textAreaString  = "";
+
+    // CTRL+Z implementation
+    /*private string [] script_versions;
+    private const short undo_lenght = 10;
+    private short pointer = 0; // point to the current script version
+    */
 
     public string textArea;
 
+    // connection attrs
     public string IP = "http://127.0.0.1";
     public string port = "1702";
     private ArrayList st_variables = new ArrayList();
@@ -83,16 +67,14 @@ public class playground : MonoBehaviour {
     private string engine = "None"; // values: "WODEN", "ROASSAL2"
 
     private JSONRootElement view;
-
-    private Boolean DEBUG = true;
-
+    
     List<GameObject> gameObjects;
     float[] scaling = { 0.05f, 0.05f, 0.05f }; //{ 0.2f, 0.2f, 0.2f };
     float[] positioning = { 0.05f, -0.05f, 0.05f }; //{ 1.0f, 1.0f, 1.0f };//{ 0.2f, -0.2f, 0.2f };
     float[] shifting = { 0.00f, 0.00f, 1.00f };
     private static readonly float r = 1.0f;
 
-    InteractiveGameObject world_interaction;
+    //InteractiveGameObject world_interaction; // not yet
     
     float scale_const = (float)25.0f; // divisor
 
@@ -106,12 +88,17 @@ public class playground : MonoBehaviour {
         GameObject.Find("Canvas/PopupPanel").GetComponent<Image>().color = new Color(0, 0, 0, 0);
         GameObject.Find("Canvas/DebugPanel").GetComponent<Image>().color = new Color(0, 0, 0, 0);
 
-        world_interaction = world.AddComponent<InteractiveGameObject>(); // test
-        world_interaction.interactions = this.interactions;
+        //world_interaction = world.AddComponent<InteractiveGameObject>(); // test
+        //world_interaction.interactions = this.interactions;
+        
+
+        //script_versions = new string[undo_lenght];
 
         this.transform.position = new Vector3(-2.0f, -1.0f, -1.0f);
         
         alertText.text = "(Use CTRL + D to execute)";
+
+        th = new TextHighlighter();
 
         this.isHide = false;
         
@@ -127,7 +114,7 @@ public class playground : MonoBehaviour {
     void Update() {
         manageInput(inputField);
 
-        if(!inputField.enabled) showDebug();
+        if(this.DEBUG) showDebug();
 
         // debug
         Vector3 canvasPosition = GameObject.FindObjectOfType<Canvas>().transform.position;
@@ -135,11 +122,12 @@ public class playground : MonoBehaviour {
 
         // update edges
         foreach (GameObject e in GameObject.FindGameObjectsWithTag("Edge")) {
+            GameObject temp_world = e.transform.parent.gameObject;
             var origin_dest = e.name.Split('-');
             string id_origin = origin_dest[0];
             string id_destination = origin_dest[1];
-            GameObject o = GameObject.Find("World/" + id_origin);
-            GameObject d = GameObject.Find("World/" + id_destination);
+            GameObject o = GameObject.Find("World/" + temp_world.name + "/" + id_origin);
+            GameObject d = GameObject.Find("World/" + temp_world.name + "/" + id_destination);
             Vector3 origin = o.transform.position;
             Vector3 destination = d.transform.position;
 
@@ -151,11 +139,57 @@ public class playground : MonoBehaviour {
 
     void manageInput(InputField input) {
 
+        //string temp_script_versions = "";
+        if (Input.anyKey && !this.isHide) {
+            // highlighted text: this.inputColoredText.text = th.getHighlightedText(inputField.text);
 
-        /*if (Input.anyKey && !this.isHide) {
-            var arr = getHighlightedText(input.text);
-            this.inputColoredText.text = arr[0];
-        }*/
+            // save current script
+            //this.script_versions[this.script_version.] = inputField.text;
+            //this.script_versions.Add(inputField.text);
+            /*if (this.pointer == 0 || this.script_versions[this.pointer - 1] != inputField.text)
+            {
+                if (this.pointer > 0 && this.pointer < (undo_lenght - 1))
+                {
+                    this.script_versions[this.pointer] = inputField.text;
+                    this.pointer += 1;
+                    if (this.script_versions[this.pointer] != "")
+                    {
+                        for (int i = this.pointer; i < undo_lenght;i++)
+                        {
+                            this.script_versions[i] = "";
+                        }
+                    }
+                }
+                else if (this.pointer == (undo_lenght-1))
+                {
+                    for (int i = 1; i < (undo_lenght); i++)
+                    {
+                        this.script_versions[i - 1] = this.script_versions[i];
+                    }
+                    this.script_versions[this.pointer] = inputField.text;
+                }
+                else
+                {
+                    this.script_versions[this.pointer] = inputField.text;
+                    if (this.pointer < (undo_lenght-1)) this.pointer += 1;
+                }
+
+                for (int i = 0; i < (undo_lenght); i++)
+                {
+                    if (this.pointer != i)
+                    {
+                        temp_script_versions += "Script version [" + i + "] = " + this.script_versions[i] + "\n";
+                    }
+                    else
+                    {
+                        temp_script_versions += "Script version ->[" + i + "] = " + this.script_versions[i] + "\n";
+                    }
+                }
+                Debug.Log(temp_script_versions + "pointer=" + this.pointer);
+                temp_script_versions = "";
+            }*/
+           
+        }
 
         if (Input.GetKeyDown(KeyCode.LeftAlt)) {
             this.isHide = !this.isHide;
@@ -176,26 +210,55 @@ public class playground : MonoBehaviour {
             inputField.Select();
             inputField.ActivateInputField();
         }
-        
-        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.D) ) { // Do it!
+
+        /*if (Input.GetKey(KeyCode.LeftAlt) && Input.GetKeyDown(KeyCode.Z)) { // Undo
+            if(this.pointer > 0) this.pointer -= 1;
+            inputField.text = this.script_versions[this.pointer];
+            Debug.Log("Undo");
+        }
+        if (Input.GetKey(KeyCode.LeftAlt) && Input.GetKeyDown(KeyCode.Y)) { // Redo
+            if(this.pointer < (undo_lenght-1)) this.pointer += 1;
+            inputField.text = this.script_versions[this.pointer];
+            Debug.Log("Redo");
+        }
+        */
+        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.D)) { // Do it!
             try {   
                 // clean previous objects (if they exist)
                 var objects = GameObject.FindGameObjectsWithTag("WodenObj");
                 var rt2_objects = GameObject.FindGameObjectsWithTag("Roassal2Obj");
                 var edges = GameObject.FindGameObjectsWithTag("Edge");
 
-                foreach (GameObject o in objects)
-                    Destroy(o.gameObject);
+                if (Input.GetKey(KeyCode.LeftShift)){ // if LeftShift is also pressed, then all the views are removed
+                    Debug.Log("LeftShift Pressed!");
+                    foreach (GameObject o in objects)
+                        Destroy(o.gameObject);
 
-                foreach (GameObject o in rt2_objects)
-                    Destroy(o.gameObject);
+                    foreach (GameObject o in rt2_objects)
+                        Destroy(o.gameObject);
 
-                foreach (GameObject o in edges)
-                    Destroy(o.gameObject);
+                    foreach (GameObject o in edges)
+                        Destroy(o.gameObject);
+
+                    for (int i = 0; i < this.views_count; i++) {
+                        Destroy(GameObject.Find("World/World" + i));
+                        Debug.LogWarning("World/World" + i + " deleted!!");
+                    }
+                    this.views_count = 0;
+                }
+
                 
+
             }
             finally { // send script to backend and deploy new geometries
-                sendMsg(input.text);
+                GameObject new_view = new GameObject("World" + this.views_count);
+                var interaction = new_view.AddComponent<InteractiveGameObject>();
+                interaction.interactions = this.interactions;
+
+                new_view.transform.parent = this.world.transform;
+                sendMsg(input.text, new_view);
+
+                this.views_count += 1;
             }
         }
     }
@@ -205,13 +268,13 @@ public class playground : MonoBehaviour {
         alertText.color = color;
     }
 
-    public void sendMsg(string script) {
-        Debug.Log("SEND MSG: shifting:" + shifting[0] +"," + shifting[1] + "," + shifting[2] +".");
+    public void sendMsg(string script, GameObject current_world) {
+        var generate_geometries = false;
         try
         {
             // SEND POST
             var request = (HttpWebRequest)WebRequest.Create(IP + ":" + port + "/");
-            request.Timeout = 3000;
+            request.Timeout = 5000;
             var data = System.Text.Encoding.ASCII.GetBytes(script + "v encodeAllElementsInSceneAsJSON");
 
             request.Method = "POST";
@@ -225,13 +288,42 @@ public class playground : MonoBehaviour {
             }
             changeAlertMessage("Code sent correctly", new Color(220, 220, 220));
 
+            /*Debug.Log("request.GetResponse?");
+            Debug.Log("Header: " + request.Headers.ToString());
+            Debug.Log("GetType: " + request.GetType().ToString());
+            Debug.Log("GetResponseAsync.Status: " + request.GetResponseAsync().Status.ToString());
+            Debug.Log("GetResponseAsync.Result: " + request);
+            Debug.Log("HaveResponse: " + request.HaveResponse);
+            Debug.Log("requestToString: " + request.ToString());
+            Debug.Log("ContentType: " + request.ContentType);
+            Debug.Log("GetRequestStream: " + request.GetRequestStream().ToString());
+            Debug.Log("Cast?");*/
             response = (HttpWebResponse)request.GetResponse();
+            /*
+            Debug.Log("response");
+
+            Stream test = response.GetResponseStream();
+            Debug.Log("test");
+            StreamReader t2 = new System.IO.StreamReader(test);
+            Debug.Log("t2");
+            responseString = t2.ReadToEnd();
+            Debug.Log("!");*/
+
             responseString = new System.IO.StreamReader(response.GetResponseStream()).ReadToEnd();
 
             Debug.LogWarning("responseString: " + responseString);
 
-            this.view = JsonUtility.FromJson<JSONRootElement>(responseString);
-            Debug.LogWarning("JSON contains " + this.view.elements.Length + " lines");
+            generate_geometries = !responseString.Contains("Message"); // true if the response contains elements
+
+            if (responseString.Contains("Message")){ // Systax exception or error
+                Debug.Log("ERROR: "+responseString+" ");
+                Pharo_SyntaxError(responseString);
+            } else {
+                this.view = JsonUtility.FromJson<JSONRootElement>(responseString);
+                if(this.view.elements != null)
+                    Debug.LogWarning("JSON contains " + this.view.elements.Length + " lines");
+            }
+            
         }
         catch (Exception e)
         {
@@ -246,411 +338,217 @@ public class playground : MonoBehaviour {
             }
             msg += "\n" + e.Message;
             msg += "\n" + e.TargetSite.ToString();
+            msg += "\n" + e.Source;
+            /*msg += "\n" + e.Data;
+            var st = new System.Diagnostics.StackTrace(e, true);
+            // Get the top stack frame
+            var frame = st.GetFrame(0);
+            // Get the line number from the stack frame
+            var line = frame.GetFileLineNumber();
+            msg += "\nline:'" + line + "'";*/
 
             changeAlertMessage(msg, new Color(220, 0, 0));
-            Debug.Log(msg);
+            Debug.Log(msg+"\n"+e.StackTrace.ToString());
 
         };
-
-
+        
         // GENERATE GEOMETRIES
+        if (generate_geometries) {
+            AVAR_Element obj;
+            AVAR_Edge edge;
+            int index_edges = 0;
 
-        AVAR_Element obj;
-        AVAR_Edge edge;
-        //Roassal2Object robj; [DELETE]
-        int index_edges = 0;
+            float min_z = 1000.0f;
+            int element_count = 0;
 
-        float min_z = 1000.0f;
-        int element_count = 0;
+            current_world.transform.position = new Vector3(0, 0, 0);
 
-        this.world.transform.position = new Vector3(0, 0, 0);
+            //Scale? (if it is possible to do on Pharo, then that's better!) ####
+            float maxX = 1.0f;
+            float maxZ = 1.0f;
 
-        //Scale? (if it is possible to do on Pharo, then that's better!) ####
-        float maxX = 1.0f;
-        float maxZ = 1.0f;
-
-        for (int i = 0; i < this.view.elements.Length; i++) {
-            //test Tue, May 28th
-            Debug.Log("type: " + this.view.elements[i].type);
-            if (this.view.elements[i].type == "RTelement")
+            if (this.view.RTelements !=null) for (int i = 0; i < this.view.RTelements.Length; i++)
             {
-                if (maxX < this.view.elements[i].position[0])
-                    maxX = this.view.elements[i].position[0];
-                if (maxZ < this.view.elements[i].position[1])
-                    maxZ = this.view.elements[i].position[1];
-            }
-        }
-        Debug.Log("MaxX: " + maxX + ", maxZ: " + maxZ);
-
-
-        for (int i = 0; i < this.view.elements.Length; i++)
-        {
-
-            if (this.view.elements[i].type == "camera")
-            {
-                Debug.Log("type :" + this.view.elements[i].type + " | pos:" + this.view.elements[i].position);
-            }
-            else if (this.view.elements[i].type == "element")
-            {
-                if (engine == "NONE") engine = "WODEN";
-                Debug.Log("A Woden 'element'");
-
-                Color col = new Color(
-                    this.view.elements[i].color[0],
-                    this.view.elements[i].color[1],
-                    this.view.elements[i].color[2]);
-                col.a = this.view.elements[i].color[3];
-
-                obj = new AVAR_Element(
-                    this.view.elements[i].id,
-                    this.view.elements[i].shape.shapeDescription,
-                        new Vector3(
-                        this.view.elements[i].position[0] * positioning[0], //+ shifting[0],
-                        this.view.elements[i].position[1] * positioning[1], // + shifting[1],
-                        this.view.elements[i].position[2] * positioning[2] // + shifting[2]
-                        ),
-                    Vector3.Scale(transform.localScale, new Vector3(
-                        this.view.elements[i].shape.extent[0] * scaling[0],
-                        this.view.elements[i].shape.extent[1] * scaling[1],
-                        this.view.elements[i].shape.extent[2] * scaling[2]
-                        )),
-                    col
-                    );
-                /* [DELETE] switch (this.view.elements[i].shape.shapeDescription)
+                //Debug.Log("type: " + this.view.RTelements[i].type);
+                if (this.view.RTelements[i].type == "RTelement") // No es necesario
                 {
-                    case "cube":
-                        obj = new AVARObject(
-                            GameObject.CreatePrimitive(PrimitiveType.Cube),
+                    if (maxX < this.view.RTelements[i].position[0])
+                        maxX = this.view.RTelements[i].position[0];
+                    if (maxZ < this.view.RTelements[i].position[1])
+                        maxZ = this.view.RTelements[i].position[1];
+                }
+
+            }
+            //Debug.Log("MaxX: " + maxX + ", maxZ: " + maxZ);
+
+
+            if (this.view.elements != null) for (int i = 0; i < this.view.elements.Length; i++)
+                {
+
+                    if (this.view.elements[i].type == "camera")
+                    {
+                        Debug.Log("type :" + this.view.elements[i].type + " | pos:" + this.view.elements[i].position);
+                    }
+                    else if (this.view.elements[i].type == "element")
+                    {
+                        if (engine == "NONE") engine = "WODEN";
+                        Debug.Log("A Woden 'element'");
+
+                        Color col = new Color(
+                            this.view.elements[i].color[0],
+                            this.view.elements[i].color[1],
+                            this.view.elements[i].color[2]);
+                        col.a = this.view.elements[i].color[3];
+
+                        obj = new AVAR_Element(
+                            this.view.elements[i],
+                            positioning,
+                            scaling,
+                            scale_const, //not necessary
+                            col,
+                            current_world);
+                        /*obj = new AVAR_Element(
                             this.view.elements[i].id,
-                            "RWCube",
-                            new Vector3(
-                                this.view.elements[i].position[0] * positioning[0], // + shifting[0],
+                            this.view.elements[i].shape.shapeDescription,
+                                new Vector3(
+                                this.view.elements[i].position[0] * positioning[0], //+ shifting[0],
                                 this.view.elements[i].position[1] * positioning[1], // + shifting[1],
                                 this.view.elements[i].position[2] * positioning[2] // + shifting[2]
-                            ),
+                                ),
                             Vector3.Scale(transform.localScale, new Vector3(
                                 this.view.elements[i].shape.extent[0] * scaling[0],
                                 this.view.elements[i].shape.extent[1] * scaling[1],
                                 this.view.elements[i].shape.extent[2] * scaling[2]
                                 )),
-                        "WODEN"
-                            );
-                        break;
-                    case "UVSphere":
-                        obj = new AVARObject(
-                            GameObject.CreatePrimitive(PrimitiveType.Sphere),
-                            this.view.elements[i].id,
-                            "RWUVSphere",
-                            "WODEN"
-                            );
-                        break;
-                    case "cylinder":
-                        obj = new WodenObject(
-                            GameObject.CreatePrimitive(PrimitiveType.Cylinder),
-                            this.view.elements[i].id,
-                            "RWCylinder");
-                        break;
-                    default:
-                        // by default a cube is deployed
-                        obj = new WodenObject(
-                            GameObject.CreatePrimitive(PrimitiveType.Cube),
-                            this.view.elements[i].id,
-                            "Undefined");
-                        break;
-                }
+                            col,
+                            current_world
+                            );*/
 
-                // set position, scale, and shifting
-                obj.go.transform.position = new Vector3(
-                    this.view.elements[i].position[0] * positioning[0], // + shifting[0],
-                    this.view.elements[i].position[1] * positioning[1], // + shifting[1],
-                    this.view.elements[i].position[2] * positioning[2] // + shifting[2]
-                    );
-                obj.go.transform.localScale = Vector3.Scale(transform.localScale, new Vector3(
-                    this.view.elements[i].shape.extent[0] * scaling[0],
-                    this.view.elements[i].shape.extent[1] * scaling[1],
-                    this.view.elements[i].shape.extent[2] * scaling[2]
-                    ));
-                */
+                        // adding other properties
 
-                // adding other properties
-                    
-                //obj.go.GetComponent<Renderer>().material.color = col;
+                        //obj.go.GetComponent<Renderer>().material.color = col;
 
-                // add object to the list of objects
-                //obj.go.tag = "WodenObj";
-                //obj.go.transform.parent = world.transform;
-                obj.transformParent(world);
-                //obj.go.name = this.view.elements[i].id+"";
+                        // add object to the list of objects
+                        //obj.go.tag = "WodenObj";
+                        //obj.go.transform.parent = world.transform;
+                        // not necessary: obj.transformParent(current_world);
+                        //obj.go.name = this.view.elements[i].id+"";
 
-                // adding interaction
-                var interaction = obj.go.AddComponent<InteractiveGameObject>();
-                interaction.interactions = this.interactions;
-                    
-                //if (interaction is popup):
-                interaction.popup_msg = obj.type;
+                        // adding interaction
+                        var interaction = obj.go.AddComponent<InteractiveGameObject>();
+                        interaction.interactions = this.interactions;
 
-                element_count += 1;
+                        //if (interaction is popup):
+                        interaction.popup_msg = obj.type;
 
-                //if (min_z > obj.go.transform.position.y) min_z = obj.go.transform.position.y;
-                    
-                /*Debug.Log(
-                    "type :" + this.view.elements[i].type +
-                    " | shape.shapeDescription: " + this.view.elements[i].shape.shapeDescription +
-                    " | pos: (" + this.view.elements[i].position[0] +
-                    "," + this.view.elements[i].position[1] +
-                    "," + this.view.elements[i].position[2] + ")" +
-                    " | real (" + obj.go.transform.position[0] +
-                    "," + obj.go.transform.position[1] +
-                    "," + obj.go.transform.position[2] + ")" +
-                    " | shape.extent: (" + this.view.elements[i].shape.extent[0] +
-                    "," + this.view.elements[i].shape.extent[1] +
-                    "," + this.view.elements[i].shape.extent[2] + ") " +
-                    " | shape.color : (" + this.view.elements[i].color[0] +
-                    "," + this.view.elements[i].color[1] +
-                    "," + this.view.elements[i].color[2] +
-                    ", alpha=" + this.view.elements[i].color[3] + ") "
-                    );*/
-            }
-            else if (this.view.elements[i].type == "edge")
-            {
-                Color col = new Color(
-                        this.view.elements[i].color[0],
-                        this.view.elements[i].color[1],
-                        this.view.elements[i].color[2]
-                        );
-                col.a = this.view.elements[i].color[3];
-                edge = new AVAR_Edge(
-                    this.view.elements[i].from_id,
-                    this.view.elements[i].to_id,
-                    this.view.elements[i].type,
-                    0.005f,
-                    col
-                    );
+                        element_count += 1;
 
-                edge.transformParent(world);
+                        //if (min_z > obj.go.transform.position.y) min_z = obj.go.transform.position.y;
 
-                //if (this.DEBUG)
-                    edge.print();
-
-                /*Debug.Log(
-                    "EdgeColor: ("+ this.view.elements[i].color[0]
-                    + ", " + this.view.elements[i].color[1]
-                    + ", " + this.view.elements[i].color[2] + ")"
-                    );
-
-                string id_origin = this.view.elements[i].from_id.ToString();
-                string id_destination = this.view.elements[i].to_id.ToString();
-                Debug.Log("Edge which connects ["+id_origin+"] with ["+id_destination+"]");
-                Vector3 origin = GameObject.Find("World/"+id_origin).transform.position;
-                Vector3 destination = GameObject.Find("World/" + id_destination).transform.position;
-
-                Debug.Log(
-                    "[EDGE] type: " + this.view.elements[i].type +
-                    "from: " + origin + " to: " + destination);
-
-                var dist = Vector3.Distance(origin, destination);
-                Vector3 pointAlongLine = Vector3.Normalize(destination - origin) + origin;
-                    
-                lr.startColor = color; lr.endColor = color;
-                obj.go.GetComponent<Renderer>().material.color = color;
-                lr.startWidth = 0.005f; lr.endWidth = 0.005f;
-                lr.SetPosition(0, origin);
-                lr.SetPosition(1, destination);*/
-
-                index_edges += 1;
-            }
-            else if (this.view.elements[i].type == "RTelement")
-            {
-                    
-                Color col = new Color(
-                    this.view.elements[i].color[0],
-                    this.view.elements[i].color[1],
-                    this.view.elements[i].color[2]
-                    );
-
-                // Roassal2 objects
-                if (engine == "NONE") engine = "ROASSAL2"; 
-                    
-                // Create a Roassal2 element
-                obj = new AVAR_Element(
-                    this.view.elements[i].id,
-                    this.view.elements[i].shape.shapeDescription,
-                    new Vector3( // position
-                        (this.view.elements[i].position[0] * positioning[0]) / scale_const, // + shifting[0],
-                        (this.view.elements[i].position[1] * positioning[1]) / scale_const // + shifting[1],
-                        //shifting[2]
-                        ),
-                    new Vector3( // scale
-                        this.view.elements[i].shape.extent[0] * scaling[0] / scale_const,
-                        this.view.elements[i].shape.extent[1] * scaling[1] / scale_const,
-                        0.00002f
-                        ),
-                    col
-                    );
-                /*
-                Vector3 pos = new Vector3( // position
-                                (this.view.elements[i].position[0] * positioning[0]) / scale_const + shifting[0],
-                                (this.view.elements[i].position[1] * positioning[1]) / scale_const + shifting[1],
-                                0.00002f
+                    }
+                    if (this.view.elements[i].type == "edge")
+                    {
+                        Color col = new Color(
+                                this.view.elements[i].color[0],
+                                this.view.elements[i].color[1],
+                                this.view.elements[i].color[2]
                                 );
-                Vector3 scale = new Vector3( // scale
-                        this.view.elements[i].shape.extent[0] * scaling[0] / scale_const,
-                        0.00002f,
-                        this.view.elements[i].shape.extent[1] * scaling[1] / scale_const
-                        );
-                Debug.Log("[RTElement] pos" + pos);
-                Debug.Log("[RTElement] scale" + scale);
+                        col.a = this.view.elements[i].color[3];
+                        edge = new AVAR_Edge(
+                            this.view.elements[i].from_id,
+                            this.view.elements[i].to_id,
+                            this.view.elements[i].type,
+                            0.005f,
+                            col,
+                            current_world
+                            );
 
-                switch (this.view.elements[i].shape.shapeDescription)
-                {
-                    case "RTEllipse":
-                            
-                        edge = new Roassal2Object(
-                            GameObject.CreatePrimitive(PrimitiveType.Cylinder),
-                            this.view.elements[i].id,
-                            "RTEllipse",
-                            pos,
-                            new Vector3( // scale
-                                this.view.elements[i].shape.extent[0] * scaling[0] / scale_const,
-                                0.00002f,
-                                this.view.elements[i].shape.extent[1] * scaling[1] / scale_const
-                                )
-                            );
-                        robj.go.transform.RotateAroundLocal(new Vector3(1, 0, 0), (float)Math.PI/2.0f);
-                        break;
-                    case "RTBox":
-                        robj = new Roassal2Object(
-                            GameObject.CreatePrimitive(PrimitiveType.Cube),
-                            this.view.elements[i].id,
-                            "RTBox",
-                            pos,
-                            new Vector3( // scale
-                                this.view.elements[i].shape.extent[0] * scaling[0] / scale_const,
-                                this.view.elements[i].shape.extent[1] * scaling[1] / scale_const,
-                                0.00002f
-                                )
-                            );
-                        break;
-                    default:
-                        // by default a cube is deployed
-                        robj = new Roassal2Object(
-                            GameObject.CreatePrimitive(PrimitiveType.Cube),
-                            this.view.elements[i].id,
-                            "Undefined",
-                            new Vector3(0,0,0),
-                            new Vector3(0,0,0)
+                        //edge.transformParent(current_world);
+                        
+                        //if (this.DEBUG)
+                        edge.print();
+
+                        index_edges += 1;
+                    }
+                }
+            if (this.view.RTelements !=null) for (int i = 0; i < this.view.RTelements.Length; i++)
+            {
+                if (this.view.RTelements[i].type == "RTelement") {
+
+                    Color col = new Color(
+                        this.view.RTelements[i].color[0],
+                        this.view.RTelements[i].color[1],
+                        this.view.RTelements[i].color[2]
                         );
-                        break;
+
+                    // Roassal2 objects
+                    if (engine == "NONE") engine = "ROASSAL2";
+
+                        // Create a Roassal2 element
+                    obj = new AVAR_Element(
+                        this.view.RTelements[i],
+                        positioning,
+                        scaling,
+                        scale_const,
+                        col,
+                        current_world);
+                    /*  scale_const,
+                        this.view.RTelements[i].id,
+                        this.view.RTelements[i].shape.shapeDescription,
+                        new Vector3( // position
+                            (this.view.RTelements[i].position[0] * positioning[0]) / scale_const, // + shifting[0],
+                            (this.view.RTelements[i].position[1] * positioning[1]) / scale_const // + shifting[1],
+                                                                                                 //shifting[2]
+                            ),
+                        new Vector3( // scale
+                            this.view.RTelements[i].shape.extent[0] * scaling[0] / scale_const,
+                            this.view.RTelements[i].shape.extent[1] * scaling[1] / scale_const,
+                            0.00002f
+                            ),
+                        col,
+                        current_world
+                        );*/
+
+                    obj.transformParent(current_world);
                 }
 
-                robj.go.tag = "Roassal2Obj";
-                robj.go.transform.parent = world.transform;
-                robj.go.name = this.view.elements[i].id + "";
+                else if (this.view.RTelements[i].type == "RTedge") {
+                    Color col = new Color(
+                        this.view.RTelements[i].color[0],
+                        this.view.RTelements[i].color[1],
+                        this.view.RTelements[i].color[2]
+                        );
 
+                    edge = new AVAR_Edge(
+                        this.view.RTelements[i].to_id,
+                        this.view.RTelements[i].from_id,
+                        this.view.RTelements[i].type,
+                        0.001f,
+                        col,
+                        current_world
+                        );
 
-                // adding other properties
-                Color col = new Color(
-                    this.view.elements[i].color[0],
-                    this.view.elements[i].color[1],
-                    this.view.elements[i].color[2]);
-                col.a = this.view.elements[i].color[3];
-                robj.go.GetComponent<Renderer>().material.color = col;
-                */
-                /*Debug.Log("RObj created: "+ robj.roassalType);
-                Debug.Log(
-                    "type :" + this.view.elements[i].type +
-                    " | shape.shapeDescription: " + this.view.elements[i].shape.shapeDescription +
-                    " | pos: (" + this.view.elements[i].position[0] +
-                    "," + this.view.elements[i].position[1] + ")" +
-                    " | real (" + robj.go.transform.position[0] +
-                    "," + robj.go.transform.position[1] +")" +
-                    " | shape.extent: (" + this.view.elements[i].shape.extent[0] +
-                    "," + this.view.elements[i].shape.extent[1] + ") " +
-                    " | shape.color : (" + this.view.elements[i].color[0] +
-                    "," + this.view.elements[i].color[1] +
-                    "," + this.view.elements[i].color[2] +
-                    ", alpha=" + this.view.elements[i].color[3] + ") "
-                    );
-                */
+                    edge.print();
+                    edge.transformParent(current_world);
 
-
-                obj.transformParent(world);
+                    index_edges += 1;
+                } // else if (this.view.RTelements[i].shape.type)
             }
 
-            else if (this.view.elements[i].type == "RTedge") {
-                Color col = new Color(
-                    this.view.elements[i].color[0],
-                    this.view.elements[i].color[1],
-                    this.view.elements[i].color[2]
-                    );
+            //this.world.transform.position = world_ceontroid_position;
+            changeAlertMessage("View loaded correctly", new Color(220, 20, 20));
 
-                edge = new AVAR_Edge(
-                    this.view.elements[i].to_id,
-                    this.view.elements[i].from_id,
-                    this.view.elements[i].type,
-                    0.001f,
-                    col
-                    ); 
+            Vector3 v_shifting = new Vector3(shifting[0], shifting[1], shifting[2]);
+            //if(maxX !=0.0f && maxZ!=0.0f)
 
-                edge.transformParent(world);
-
-                /*
-                obj.go.tag = "Roassal2Obj";
-                obj.go.name = this.view.elements[i].id + "";
-
-                var lr = obj.go.AddComponent<LineRenderer>();
-                lr.tag = "Edge";
-                lr.name = this.view.elements[i].from_id + "-" + this.view.elements[i].to_id;
-
-                lr.transform.parent = world.transform;
-
-                Color color = Color.white;
-
-                Debug.Log(
-                    "EdgeColor: (" + this.view.elements[i].color[0]
-                    + ", " + this.view.elements[i].color[1]
-                    + ", " + this.view.elements[i].color[2] + ")"
-                    );
-
-                string id_origin = this.view.elements[i].from_id.ToString();
-                string id_destination = this.view.elements[i].to_id.ToString();
-                Debug.Log("Edge which connects [" + id_origin + "] with [" + id_destination + "]");
-                Vector3 origin = GameObject.Find("World/" + id_origin).transform.position;
-                Vector3 destination = GameObject.Find("World/" + id_destination).transform.position;
-
-                Debug.Log(
-                    "[EDGE] type: " + this.view.elements[i].type +
-                    "from: " + origin + " to: " + destination);
-
-                var dist = Vector3.Distance(origin, destination);
-                Vector3 pointAlongLine = Vector3.Normalize(destination - origin) + origin;
-
-                lr.startColor = color; lr.endColor = color;
-                obj.go.GetComponent<Renderer>().material.color = color;
-                lr.startWidth = 0.001f; lr.endWidth = 0.001f;
-                lr.SetPosition(0, origin);
-                lr.SetPosition(1, destination);
-                */ 
-
-                index_edges += 1;
+            var distance = 1.0f;
+            current_world.transform.position = Camera.main.transform.position + Camera.main.transform.forward * distance;
+            if (this.engine == "WODEN") {
+                current_world.transform.RotateAroundLocal(new Vector3(1, 0, 0), (float)Math.PI);
+            } else {
+                //nothing yet! current_world.transform.position += v_shifting;
             }
         }
-            
-        //this.world.transform.position = world_ceontroid_position;
-        changeAlertMessage("View loaded correctly", new Color(220, 20, 20));
-
-        Vector3 v_shifting = new Vector3(shifting[0], shifting[1], shifting[2]);
-        //if(maxX !=0.0f && maxZ!=0.0f)
-
-        var distance = 1.0f;
-        this.world.transform.position = Camera.main.transform.position + Camera.main.transform.forward * distance ;
-        if (this.engine == "WODEN") {
-            this.world.transform.RotateAroundLocal(new Vector3(1, 0, 0), (float)Math.PI);
-        } else
-        {
-            this.world.transform.position = v_shifting;
-        }
-        
         
     }
 
@@ -810,8 +708,37 @@ public class playground : MonoBehaviour {
 
     private void showDebug()
     {
-        var msg = "FPS: " + String.Format("{0:0.##}", this.fps);
-        GameObject.Find("Canvas/DebugPanel/Debug").GetComponent<Text>().text = msg;
-        GameObject.Find("Canvas/DebugPanel").GetComponent<Image>().color = new Color(0.5f, 0.5f, 0.5f, 0.7f);
+        this.frameCount++;
+        this.dt += Time.deltaTime;
+        if (this.dt > 1.0 / this.updateRate) {
+            this.fps = frameCount / this.dt;
+            frameCount = 0;
+            this.dt -= 1.0 / this.updateRate;
+        }
+        var msg = "FPS: " + String.Format("{0:0.##}", this.fps)+
+            "\nUpdate rate = "+ String.Format("{0:0.##}", this.updateRate)+ "sec";
+        //this.fps = 1.0 / Time.deltaTime;
+
+        //var debugPanel = GameObject.Find("Canvas/DebugPanel"); 
+
+        this.debugPanel.GetComponent<Image>().color = new Color(0, 0, 0, 0);
+        if (!this.isHide)
+        {
+            this.debugPanel.GetComponent<Image>().color = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+            this.debugText.color = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+        } else
+        {
+            this.debugPanel.GetComponent<Image>().color = new Color(0.5f, 0.5f, 0.5f, 0.7f);
+            this.debugText.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+        }
+        
+        //Debug.Log( th.getHighlightedText(inputField.text) );
+        msg += "\nL:"+th.getTokensAsStrings(); //th.getHighlightedText(inputField.text);
+        
+        //this.debugText.GetComponent<Text>().text = msg;
+    }
+
+    public void Pharo_SyntaxError(string msg) {
+        throw new System.ArgumentException(msg);
     }
 }

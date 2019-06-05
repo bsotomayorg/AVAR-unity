@@ -7,7 +7,6 @@ using UnityEngine.UI;
 public class InteractiveGameObject : MonoBehaviour {
     public bool isActive = false;
     
-
     // blink variables
     Color originalColor;
     short count;
@@ -63,12 +62,14 @@ public class InteractiveGameObject : MonoBehaviour {
     }
     void OnAirTapped() {
         var selected = GameObject.Find("GestureManager").GetComponent<GazeGestureManager>().selected_object;
-        if ( (this.name == "World" && selected == 0) || (this.name != "World" && selected == 1)) {
+        if ( (this.name.Contains("World") && selected == 0) || (!this.name.Contains("World") && selected == 1)) {
             if (!isActive) this.originalPosition = this.transform.position;
 
             isActive = !isActive;
-
-            Debug.Log("ObjCommand[" + this.name + "].OnAirTapped, isActive = " + isActive + ")");
+            //Debug.Log("OnAirTapped():");
+            //Debug.Log("(this.name.Contains(World) && selected == 0)" + (this.name.Contains("World") && selected == 0));
+            //Debug.Log("!this.name.Contains(World) && selected == 1" + (!this.name.Contains("World") && selected == 1));
+            Debug.Log("ObjCommand[" + this.name + "].OnAirTapped, isActive = " + isActive + ") sel:"+selected );
         }
     }
 
@@ -106,7 +107,7 @@ public class InteractiveGameObject : MonoBehaviour {
         }
     }
     private void setInactiveWorld() {
-        if (this.name == "World" && this.isActive) {
+        if (this.name.Contains("World") && this.isActive) {
             this.isActive = false;
             Debug.Log("ObjCommand[" + this.name + "].SetInactiveWorld, isActive = " + this.isActive + ")");
         }

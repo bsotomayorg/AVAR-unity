@@ -55,18 +55,21 @@ public class GazeGestureManager : MonoBehaviour
         {
             Debug.Log("before: this.selected_object = " + this.selected_object);
 
-            if (this.selected_object == -1) { // if nothing selected
-                if(FocusedObject == null) {
-                    SelectedObject = GameObject.Find("World").gameObject;
-                    SelectedObject.GetComponent<InteractiveGameObject>().popup_msg = "";
-                    this.selected_object = 0;
-                    Debug.Log("GazeGesturerManager -> Focus: World");
-                } else {
-                    SelectedObject = hitInfo.collider.gameObject;
-                    this.selected_object = 1;
-                    Debug.Log("GazeGesturerManager -> Focus: WodenObj");
+            if (this.selected_object == -1) { // if previously was nothing selected
+                if(FocusedObject != null) { // an object was selected
+                    if(Input.GetKey(KeyCode.LeftControl)){ // then, we want to select a complete view
+                        SelectedObject = hitInfo.collider.gameObject;
+                        Debug.LogWarning("Seleccionado el padre '" + SelectedObject.transform.parent.gameObject.name + "'") ;
+                        SelectedObject = SelectedObject.transform.parent.gameObject; // World/view selection
+                        this.selected_object = 0; //?
+                        Debug.Log("GazeGesturerManager -> Focus: World ("+SelectedObject.name+")");
+                    } else { // otherwise, we want to select a single object
+                        SelectedObject = hitInfo.collider.gameObject;
+                        this.selected_object = 1;
+                        Debug.Log("GazeGesturerManager -> Focus: WodenObj (" + SelectedObject.name + ")");
+                    }
+                    SelectedObject.SendMessageUpwards("OnAirTapped", SendMessageOptions.DontRequireReceiver);
                 }
-                SelectedObject.SendMessageUpwards("OnAirTapped", SendMessageOptions.DontRequireReceiver);
 
             } else if (this.selected_object == 0) { // if previously was selected the world
                 // assign position to the selected object
@@ -80,20 +83,10 @@ public class GazeGestureManager : MonoBehaviour
                 SelectedObject.SendMessageUpwards("setInactive", SendMessageOptions.DontRequireReceiver);
                 Debug.Log("Setting inactive: " + SelectedObject.name + "(obj.name)");
                 this.selected_object = -1;
-
             }
             Debug.Log("after : this.selected_object = " + this.selected_object);
             Debug.Log("--");
         };
-
-        /*recognizer.HoldStarted += (args) =>
-        {
-            Debug.Log("Hold started. Pos: " + this.handPosition_start);
-        };
-        recognizer.HoldCompleted += (args) =>
-        {
-            Debug.Log("Hold Completed");
-        };*/
 
         recognizer.NavigationStarted += (args) =>  {
             this.handPosition_start = this.handPosition_current;
@@ -163,7 +156,7 @@ public class GazeGestureManager : MonoBehaviour
         else {
             // If the raycast did not hit a hologram, clear the focused object.
             FocusedObject = null;
-            GameObject.Find("World").GetComponent<InteractiveGameObject>().popup_msg = "";
+            //GameObject.Find("World").GetComponent<InteractiveGameObject>().popup_msg = "";
         }
 
         // If the focused object changed this frame,
