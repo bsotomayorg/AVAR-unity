@@ -87,11 +87,10 @@ public class playground : MonoBehaviour {
 
         GameObject.Find("Canvas/PopupPanel").GetComponent<Image>().color = new Color(0, 0, 0, 0);
         GameObject.Find("Canvas/DebugPanel").GetComponent<Image>().color = new Color(0, 0, 0, 0);
-
+        GameObject.Find("Canvas/PopupPanel/Popup").GetComponent<Text>().text = "";
         //world_interaction = world.AddComponent<InteractiveGameObject>(); // test
         //world_interaction.interactions = this.interactions;
         
-
         //script_versions = new string[undo_lenght];
 
         this.transform.position = new Vector3(-2.0f, -1.0f, -1.0f);
@@ -134,6 +133,22 @@ public class playground : MonoBehaviour {
             var lr = e.GetComponent<LineRenderer>();
             lr.SetPosition(0, origin);
             lr.SetPosition(1, destination);
+        }
+
+        // hide or show canvas panels of views
+        if (this.isHide) {
+            GameObject w = GameObject.Find("World");
+            for (int i = 0; i < w.transform.childCount; i++) {
+                GameObject child = w.transform.GetChild(i).gameObject;
+                child.GetComponent<Canvas>().transform.localScale = Vector3.one;
+            }
+        } else {
+            GameObject w = GameObject.Find("World");
+            for (int i = 0; i < w.transform.childCount; i++) {
+                GameObject child = w.transform.GetChild(i).gameObject;
+                child.GetComponent<Canvas>().transform.localScale = Vector3.zero;
+
+            }
         }
     }
 
@@ -246,13 +261,20 @@ public class playground : MonoBehaviour {
                     }
                     this.views_count = 0;
                 }
-
                 
-
             }
             finally { // send script to backend and deploy new geometries
                 GameObject new_view = new GameObject("World" + this.views_count);
                 var interaction = new_view.AddComponent<InteractiveGameObject>();
+                
+                // let's add a Canvas for visualize Labels
+                var c = new_view.AddComponent<Canvas>();
+                // for rendering, let's add a Canvas Scaler which will avoid blurred text
+                var cs = new_view.AddComponent<CanvasScaler>();
+                cs.dynamicPixelsPerUnit = 25;
+
+                c.renderMode = RenderMode.WorldSpace;
+                c.pixelPerfect = true;
                 interaction.interactions = this.interactions;
 
                 new_view.transform.parent = this.world.transform;
@@ -509,7 +531,7 @@ public class playground : MonoBehaviour {
                         current_world
                         );*/
 
-                    obj.transformParent(current_world);
+                    //obj.transformParent(current_world);
                 }
 
                 else if (this.view.RTelements[i].type == "RTedge") {
@@ -719,7 +741,7 @@ public class playground : MonoBehaviour {
             "\nUpdate rate = "+ String.Format("{0:0.##}", this.updateRate)+ "sec";
         //this.fps = 1.0 / Time.deltaTime;
 
-        //var debugPanel = GameObject.Find("Canvas/DebugPanel"); 
+        var debugPanel = GameObject.Find("Canvas/DebugPanel"); 
 
         this.debugPanel.GetComponent<Image>().color = new Color(0, 0, 0, 0);
         if (!this.isHide)
@@ -733,9 +755,9 @@ public class playground : MonoBehaviour {
         }
         
         //Debug.Log( th.getHighlightedText(inputField.text) );
-        msg += "\nL:"+th.getTokensAsStrings(); //th.getHighlightedText(inputField.text);
+        //msg += "\nL:"+th.getTokensAsStrings(); //th.getHighlightedText(inputField.text);
         
-        //this.debugText.GetComponent<Text>().text = msg;
+        this.debugText.GetComponent<Text>().text = msg;
     }
 
     public void Pharo_SyntaxError(string msg) {

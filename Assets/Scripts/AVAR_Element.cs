@@ -11,6 +11,7 @@ public class AVAR_Element
     public string engine;
     Vector3 position;
     Vector3 scale;
+    private GameObject canvas;
 
     public AVAR_Element(JSONElement element, float [] positioning, float[] scaling, float scale_const, Color col, GameObject world)
     {
@@ -68,14 +69,48 @@ public class AVAR_Element
             case "RTlabel":
                 if (element.shape.text != "nil") {
                     Debug.Log("A label was found!!: '" + element.shape.text + "'");
-                    this.go = new GameObject();
-                    GameObject child = new GameObject("\""+element.shape.text+"\"");
+                    
+                    var c = world.GetComponent<Canvas>();
+                    var text_scaling = new Vector2(2,1.5f);
+                    //
+                    this.go = new GameObject("RTlabel", typeof(RectTransform));
+                    this.transformParent(c.gameObject);
+                    
+                    RectTransform rtgo = this.go.GetComponent<RectTransform>();
+                    //rtgo.sizeDelta = new Vector2(this.scale.x * 50, this.scale.y * 50);
+                    //rtgo.sizeDelta = new Vector2(test_label_scaling, test_label_scaling);
+                    rtgo.sizeDelta = text_scaling;
+                    rtgo.anchoredPosition = new Vector2(0, 0);
+
+
+                    //this.go.transform.SetParent(GameObject.Find("Canvas").gameObject.transform);
+                    /*RectTransform rt = this.go.GetComponent<RectTransform>();
+                    rt.sizeDelta = new Vector2(this.scale.x, this.scale.y);
+                    rt.anchoredPosition = new Vector2(0, 0); // by default
+                    this.go.AddComponent<Text>().text = element.shape.text;
+                    this.go.GetComponent<Text>().font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
+                    */
+                    GameObject label = new GameObject("\"" + element.shape.text + "\"", typeof(RectTransform));
+                    label.transform.SetParent(this.go.transform);
+                    RectTransform rt = label.GetComponent<RectTransform>();
+                    //rt.sizeDelta = new Vector2(this.scale.x, this.scale.y);
+                    rt.sizeDelta = text_scaling;
+                    //rt.sizeDelta = new Vector2(test_label_scaling, test_label_scaling);
+                    Debug.Log("label extent: (sizeDelta)=" + rt.sizeDelta); // [Pending] this value is "extent"
+                    rt.anchoredPosition = new Vector2(0, 0); // by default
+                    this.go.AddComponent<Text>().text = element.shape.text;
+                    this.go.GetComponent<Text>().font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
+                    this.go.GetComponent<Text>().fontSize = 1;
+                    /*
+                    this.go = new GameObject("RTlabel");
+                    GameObject child = new GameObject("\""+element.shape.text+"\"", typeof(RectTransform));
                     child.transform.SetParent(go.transform);
                     Text t = child.AddComponent<Text>();
-                    //child.AddComponent<RectTransform>();
                     t.text = element.shape.text;
                     child.GetComponent<Text>().font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
-                } else {
+                    */
+                }
+                else {
                     this.go = GameObject.CreatePrimitive(PrimitiveType.Cube);
                     position = Vector3.zero;
                     scale = Vector3.zero;
@@ -105,9 +140,14 @@ public class AVAR_Element
         } else  {
             this.go.tag = "Roassal2Obj";
         }
-        this.go.name = id+"";
 
-        this.transformParent(world);
+        // set parent
+        if (this.type != "RTlabel")
+        {
+            this.go.name = id + "";
+            this.transformParent(world);
+
+        }
     }
     private void print() {
         Debug.Log(
