@@ -96,7 +96,7 @@ public class AVAR_Element
                     //rt.sizeDelta = new Vector2(this.scale.x, this.scale.y);
                     rt.sizeDelta = text_scaling;
                     //rt.sizeDelta = new Vector2(test_label_scaling, test_label_scaling);
-                    Debug.Log("label extent: (sizeDelta)=" + rt.sizeDelta); // [Pending] this value is "extent"
+                    //Debug.Log("label extent: (sizeDelta)=" + rt.sizeDelta); // [Pending] this value is "extent"
                     rt.anchoredPosition = new Vector2(0, 0); // by default
                     this.go.AddComponent<Text>().text = element.shape.text;
                     this.go.GetComponent<Text>().font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
@@ -127,6 +127,8 @@ public class AVAR_Element
             this.go.GetComponentInChildren<RectTransform>().localScale = scale;
         } else {
             this.go.GetComponent<Renderer>().material.color = col;
+            this.go.GetComponent<Renderer>().material.shader = Shader.Find("Transparent/Diffuse");
+
         }
 
         this.go.transform.position = position;
@@ -136,9 +138,9 @@ public class AVAR_Element
             Debug.Log("element.interactions (number) = " + element.interactions.Count);
 
         if (type.Substring(0,2) == "RT") {
-            this.go.tag = "WodenObj";
-        } else  {
             this.go.tag = "Roassal2Obj";
+        } else  {
+            this.go.tag = "WodenObj";
         }
 
         // set parent

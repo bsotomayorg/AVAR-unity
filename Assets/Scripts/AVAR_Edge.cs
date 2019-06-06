@@ -14,6 +14,7 @@ public class AVAR_Edge
     public AVAR_Edge(string id_origin, string id_destination, string type, float width, Color color, GameObject world)
     {
         this.go = new GameObject();
+        Debug.LogWarning("[EDGE] "+id_origin+"-"+id_destination);
 
         // create the line
         this.lr = this.go.AddComponent<LineRenderer>();

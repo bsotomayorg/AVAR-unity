@@ -745,7 +745,7 @@ public class playground : MonoBehaviour {
             this.dt -= 1.0 / this.updateRate;
         }
         var msg = "FPS: " + String.Format("{0:0.##}", this.fps)+
-            "\nUpdate rate = "+ String.Format("{0:0.##}", this.updateRate)+ "sec";
+            "\nUpdate rate = "+ String.Format("{0:0.##}", this.updateRate)+ "s";
         //this.fps = 1.0 / Time.deltaTime;
 
         var debugPanel = GameObject.Find("Canvas/DebugPanel"); 
