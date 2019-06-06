@@ -134,22 +134,7 @@ public class playground : MonoBehaviour {
             lr.SetPosition(0, origin);
             lr.SetPosition(1, destination);
         }
-
-        // hide or show canvas panels of views
-        if (this.isHide) {
-            GameObject w = GameObject.Find("World");
-            for (int i = 0; i < w.transform.childCount; i++) {
-                GameObject child = w.transform.GetChild(i).gameObject;
-                child.GetComponent<Canvas>().transform.localScale = Vector3.one;
-            }
-        } else {
-            GameObject w = GameObject.Find("World");
-            for (int i = 0; i < w.transform.childCount; i++) {
-                GameObject child = w.transform.GetChild(i).gameObject;
-                child.GetComponent<Canvas>().transform.localScale = Vector3.zero;
-
-            }
-        }
+        
     }
 
     void manageInput(InputField input) {
@@ -224,6 +209,28 @@ public class playground : MonoBehaviour {
 
             inputField.Select();
             inputField.ActivateInputField();
+
+            // Rendering
+            // hide or show canvas panels of views
+            if (this.isHide)
+            {
+                GameObject w = GameObject.Find("World");
+                for (int i = 0; i < w.transform.childCount; i++)
+                {
+                    GameObject child = w.transform.GetChild(i).gameObject;
+                    child.GetComponent<Canvas>().transform.localScale = Vector3.one;
+                }
+            }
+            else
+            {
+                GameObject w = GameObject.Find("World");
+                for (int i = 0; i < w.transform.childCount; i++)
+                {
+                    GameObject child = w.transform.GetChild(i).gameObject;
+                    child.GetComponent<Canvas>().transform.localScale = Vector3.zero;
+
+                }
+            }
         }
 
         /*if (Input.GetKey(KeyCode.LeftAlt) && Input.GetKeyDown(KeyCode.Z)) { // Undo
