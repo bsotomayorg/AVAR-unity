@@ -38,6 +38,12 @@ public class playground : MonoBehaviour {
     private short frameCount = 0;
     private float updateRate = 1.0f;
 
+    // console
+    public GameObject consolePanel;
+    public Text consoleText;
+    private Vector2 consolePanel_dim;
+    private Vector2 consoleText_dim;
+
     // highlighted text
     private Boolean[] parsedCodeBool;
     private string[] parsedCodeText;
@@ -90,8 +96,13 @@ public class playground : MonoBehaviour {
         GameObject.Find("Canvas/PopupPanel/Popup").GetComponent<Text>().text = "";
         //world_interaction = world.AddComponent<InteractiveGameObject>(); // test
         //world_interaction.interactions = this.interactions;
-        
+
         //script_versions = new string[undo_lenght];
+        consoleText.text = "";
+        consoleText_dim = consoleText.transform.localScale;
+        consolePanel_dim = consolePanel.transform.localScale;
+        consoleText.transform.localScale = Vector2.zero;
+        consolePanel.transform.localScale = Vector2.zero;
 
         this.transform.position = new Vector3(-2.0f, -1.0f, -1.0f);
         
@@ -304,7 +315,8 @@ public class playground : MonoBehaviour {
             // SEND POST
             var request = (HttpWebRequest)WebRequest.Create(IP + ":" + port + "/");
             request.Timeout = 5000;
-            var data = System.Text.Encoding.ASCII.GetBytes(script + "v encodeAllElementsInSceneAsJSON");
+
+            byte[] data = data = System.Text.Encoding.ASCII.GetBytes(script);
 
             request.Method = "POST";
             request.ContentType = "text/xml;charset=\"utf-8\"";
@@ -563,6 +575,16 @@ public class playground : MonoBehaviour {
                     index_edges += 1;
                 } // else if (this.view.RTelements[i].shape.type)
             }
+
+            if (this.view.value != null) { // if text representention of Roassal vars is not null
+                consoleText.text = ">> Result:\n"+this.view.value;
+                consoleText.transform.localScale = this.consoleText_dim;
+                consolePanel.transform.localScale = this.consolePanel_dim;
+            } else {
+                consoleText.transform.localScale = Vector3.zero;
+                consolePanel.transform.localScale = Vector3.zero;
+            }
+            Debug.Log("consoleText.text="+consoleText.text);
 
             //this.world.transform.position = world_ceontroid_position;
             changeAlertMessage("View loaded correctly", new Color(220, 20, 20));
