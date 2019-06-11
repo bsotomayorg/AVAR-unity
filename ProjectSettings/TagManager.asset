@@ -8,6 +8,7 @@ TagManager:
   - TextCanvas
   - WodenObj
   - Edge
+  - Roassal2Obj
   layers:
   - Default
   - TransparentFX

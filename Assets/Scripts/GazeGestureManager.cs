@@ -57,16 +57,27 @@ public class GazeGestureManager : MonoBehaviour
 
             if (this.selected_object == -1) { // if previously was nothing selected
                 if(FocusedObject != null) { // an object was selected
-                    if(Input.GetKey(KeyCode.LeftControl)){ // then, we want to select a complete view
-                        SelectedObject = hitInfo.collider.gameObject;
+                    SelectedObject = hitInfo.collider.gameObject;
+                    if (Input.GetKey(KeyCode.LeftControl)){ // then, we want to select a complete view
                         Debug.LogWarning("Seleccionado el padre '" + SelectedObject.transform.parent.gameObject.name + "'") ;
                         SelectedObject = SelectedObject.transform.parent.gameObject; // World/view selection
                         this.selected_object = 0; //?
+
+                        // let's create a transparent plane in order to keep gazing this object and move the whole view
+                        if (GameObject.Find("World/" + SelectedObject.name + "/temp") == null)
+                        {
+                            Debug.Log("null!!"); createTempMovingPlane();
+                        }
+                        else
+                        {
+                            Debug.Log("Temp exists already;)");
+                        }
+
                         Debug.Log("GazeGesturerManager -> Focus: World ("+SelectedObject.name+")");
-                    } else { // otherwise, we want to select a single object
-                        SelectedObject = hitInfo.collider.gameObject;
+                    } else if(SelectedObject.tag == "Roassal2Obj"){ // otherwise, we want to select a single object
                         this.selected_object = 1;
                         Debug.Log("GazeGesturerManager -> Focus: WodenObj (" + SelectedObject.name + ")");
+
                     }
                     SelectedObject.SendMessageUpwards("OnAirTapped", SendMessageOptions.DontRequireReceiver);
                 }
@@ -74,6 +85,8 @@ public class GazeGestureManager : MonoBehaviour
             } else if (this.selected_object == 0) { // if previously was selected the world
                 // assign position to the selected object
                 //FocusedObject = GameObject.Find("World").gameObject;
+                if (SelectedObject == null) { Debug.LogWarning("SelectedObj = 'null'"); }
+                else { Debug.LogWarning("SelectedObj = " + SelectedObject.name); }
                 SelectedObject.SendMessageUpwards("setInactiveWorld", SendMessageOptions.DontRequireReceiver);
                 Debug.Log("Setting inactive: "+SelectedObject.name+"(obj.name)");
                 this.selected_object = -1;
@@ -175,4 +188,24 @@ public class GazeGestureManager : MonoBehaviour
         }
     }
 
+    private void createTempMovingPlane() {
+        GameObject temp = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        temp.name = "temp";
+        temp.tag = "Roassal2Obj";
+        Vector3 pos = new Vector3(
+            SelectedObject.transform.position.x,
+            SelectedObject.transform.position.y,
+            (SelectedObject.transform.position.z - 0.003f)
+        );
+        //temp.transform.localRotation = new Quaternion(-(float)Math.PI/4, 0, 0, 0);
+        temp.transform.RotateAroundLocal(new Vector3(1, 0, 0), -(float)Math.PI / 2.0f);
+        temp.transform.position = pos; // SelectedObject.transform.position; //Vector3.zero;
+        temp.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
+        var color = Color.white;
+        color.a = 0f;
+        temp.GetComponent<Renderer>().material.shader = Shader.Find("Transparent/Diffuse");
+        temp.GetComponent<Renderer>().material.color = color;
+        temp.transform.SetParent(SelectedObject.transform);
+        }
+    
 }

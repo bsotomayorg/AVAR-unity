@@ -13,8 +13,7 @@ public class InteractiveGameObject : MonoBehaviour {
     public string popup_msg = "";
     Vector3 originalPosition;
     float originalDistance;
-    Vector3 cameraOriginalPosition;
-    
+    Vector3 cameraOriginalPosition; 
 
     void Awake() {
         originalPosition = this.transform.position;
@@ -36,9 +35,7 @@ public class InteractiveGameObject : MonoBehaviour {
             this.showPopup(this.popup_msg);
         }
 
-        if (isActive) { // interactinos when the the object is selected
-            
-
+        if (isActive) { // interactinos when the the object is selected     
             foreach (short interaction in this.interactions) { 
                 switch (interaction) {
                     case RIGID_BODY:
@@ -96,10 +93,6 @@ public class InteractiveGameObject : MonoBehaviour {
         }
     }
 
-    /*private void showPopup() {
-        this.showPopup( this.popup_msg );
-    }*/
-
     private void setInactive() {
         if (this.name != "World" && this.isActive) {
             this.isActive = false;
@@ -136,25 +129,6 @@ public class InteractiveGameObject : MonoBehaviour {
         }
 
     }
-
-    //function to blink the text 
-    /*public void blink() {
-        //blink it forever. You can set a terminating condition depending upon your requirement. Here you can just set the isBlinking flag to false whenever you want the blinking to be stopped.
-        Color originalColor = Color.yellow; // this.GetComponent<Renderer>().material.color;
-        Color changedColor = Color.cyan;// originalColor;
-        if (isActive) {
-            //this.GetComponent<Renderer>().material.color = changedColor;
-
-            if (this.count > 10) {
-                this.GetComponent<Renderer>().material.color = Color.blue;
-            } else {
-                this.GetComponent<Renderer>().material.color = Color.white;
-                if (this.count == 20) this.count = 0;
-            }
-            this.count++;
-        }
-    }
-    */
     
     private void showPopup(string msg) {
         if (GameObject.Find("GestureManager").GetComponent<GazeGestureManager>().FocusedObject != null) {
