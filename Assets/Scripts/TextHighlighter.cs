@@ -68,9 +68,7 @@ public class TextHighlighter{
 
         var tokens_str = "";
         foreach (string t in tokens) { tokens_str += "'" + t + "' ";  }
-        //this.hset_asString = "hset = [ " + tokens_str + "]";
         foreach (string t in this.hset) { this.hset_asString += "'" + t + "' "; }
-        //foreach (string t in this.hset_var) { this.hset_var_asString += "'" + t + "' "; }
 
         Debug.Log("hset = [ " + tokens_str + "]\n"+
             "Class: ("+this.hset.Count+")"+ this.hset_asString + "\n"+
