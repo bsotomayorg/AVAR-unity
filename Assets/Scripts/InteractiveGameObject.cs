@@ -42,7 +42,7 @@ public class InteractiveGameObject : MonoBehaviour {
                         makeRigidBody();
                         break;
                     case ROTATE:
-                        rotate();
+                        //rotate();
                         break;
                     case MOVE:
                         moveElement();
@@ -63,6 +63,7 @@ public class InteractiveGameObject : MonoBehaviour {
             if (!isActive) this.originalPosition = this.transform.position;
 
             isActive = !isActive;
+            //if debug:
             //Debug.Log("OnAirTapped():");
             //Debug.Log("(this.name.Contains(World) && selected == 0)" + (this.name.Contains("World") && selected == 0));
             //Debug.Log("!this.name.Contains(World) && selected == 1" + (!this.name.Contains("World") && selected == 1));
@@ -80,9 +81,7 @@ public class InteractiveGameObject : MonoBehaviour {
     }
 
     private void rotate() {
-        if (this.name == "World"){
-            // nothing (yet)
-        } else { // woden gameobjects
+        if (this.name != "World"){ // woden or roassal2 gameobjects
             this.transform.Rotate(0, 1, 0);
         }
     }
@@ -116,18 +115,15 @@ public class InteractiveGameObject : MonoBehaviour {
 
             this.transform.position = Camera.main.transform.position + Camera.main.transform.forward * distance;
 
-            // experimental (Wed, May 29th)
             var camera_forward = Camera.main.transform.forward;
             var object_forward = this.transform.forward;
-
-            //this.transform.Rotate(Camera.main.transform.rotation.eulerAngles); 
+            
             this.transform.forward = new Vector3(
-                    camera_forward.x,
-                    object_forward.y,
-                    object_forward.z
-                );
-        }
-
+                camera_forward.x,
+                object_forward.y,
+                object_forward.z
+            );
+        } 
     }
     
     private void showPopup(string msg) {

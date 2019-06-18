@@ -53,12 +53,6 @@ public class playground : MonoBehaviour {
     private string textFieldString = "";
     private string textAreaString  = "";
 
-    // CTRL+Z implementation
-    /*private string [] script_versions;
-    private const short undo_lenght = 10;
-    private short pointer = 0; // point to the current script version
-    */
-
     public string textArea;
 
     // connection attrs
@@ -84,7 +78,7 @@ public class playground : MonoBehaviour {
     
     float scale_const = (float)25.0f; // divisor
 
-    private short[] interactions = {InteractiveGameObject.MOVE, InteractiveGameObject.POPUP}; // Later, this will be read from JSON
+    private short[] interactions = { InteractiveGameObject.MOVE, InteractiveGameObject.POPUP}; // Later, this will be read from JSON
 
     // Start is called before the first frame update
     void Start() {
@@ -94,10 +88,8 @@ public class playground : MonoBehaviour {
         GameObject.Find("Canvas/PopupPanel").GetComponent<Image>().color = new Color(0, 0, 0, 0);
         GameObject.Find("Canvas/DebugPanel").GetComponent<Image>().color = new Color(0, 0, 0, 0);
         GameObject.Find("Canvas/PopupPanel/Popup").GetComponent<Text>().text = "";
-        //world_interaction = world.AddComponent<InteractiveGameObject>(); // test
-        //world_interaction.interactions = this.interactions;
-
-        //script_versions = new string[undo_lenght];
+        //world_interaction.interactions = this.interactions; // when a world (or view) should has an interaction
+        
         consoleText.text = "";
         consoleText_dim = consoleText.transform.localScale;
         consolePanel_dim = consolePanel.transform.localScale;
@@ -152,54 +144,8 @@ public class playground : MonoBehaviour {
 
         //string temp_script_versions = "";
         if (Input.anyKey && !this.isHide) {
+            // get highlitedtext
             // highlighted text: this.inputColoredText.text = th.getHighlightedText(inputField.text);
-
-            // save current script
-            //this.script_versions[this.script_version.] = inputField.text;
-            //this.script_versions.Add(inputField.text);
-            /*if (this.pointer == 0 || this.script_versions[this.pointer - 1] != inputField.text)
-            {
-                if (this.pointer > 0 && this.pointer < (undo_lenght - 1))
-                {
-                    this.script_versions[this.pointer] = inputField.text;
-                    this.pointer += 1;
-                    if (this.script_versions[this.pointer] != "")
-                    {
-                        for (int i = this.pointer; i < undo_lenght;i++)
-                        {
-                            this.script_versions[i] = "";
-                        }
-                    }
-                }
-                else if (this.pointer == (undo_lenght-1))
-                {
-                    for (int i = 1; i < (undo_lenght); i++)
-                    {
-                        this.script_versions[i - 1] = this.script_versions[i];
-                    }
-                    this.script_versions[this.pointer] = inputField.text;
-                }
-                else
-                {
-                    this.script_versions[this.pointer] = inputField.text;
-                    if (this.pointer < (undo_lenght-1)) this.pointer += 1;
-                }
-
-                for (int i = 0; i < (undo_lenght); i++)
-                {
-                    if (this.pointer != i)
-                    {
-                        temp_script_versions += "Script version [" + i + "] = " + this.script_versions[i] + "\n";
-                    }
-                    else
-                    {
-                        temp_script_versions += "Script version ->[" + i + "] = " + this.script_versions[i] + "\n";
-                    }
-                }
-                Debug.Log(temp_script_versions + "pointer=" + this.pointer);
-                temp_script_versions = "";
-            }*/
-           
         }
 
         if (Input.GetKeyDown(KeyCode.LeftAlt)) {
@@ -244,17 +190,6 @@ public class playground : MonoBehaviour {
             }
         }
 
-        /*if (Input.GetKey(KeyCode.LeftAlt) && Input.GetKeyDown(KeyCode.Z)) { // Undo
-            if(this.pointer > 0) this.pointer -= 1;
-            inputField.text = this.script_versions[this.pointer];
-            Debug.Log("Undo");
-        }
-        if (Input.GetKey(KeyCode.LeftAlt) && Input.GetKeyDown(KeyCode.Y)) { // Redo
-            if(this.pointer < (undo_lenght-1)) this.pointer += 1;
-            inputField.text = this.script_versions[this.pointer];
-            Debug.Log("Redo");
-        }
-        */
         if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.D)) { // Do it!
             try {   
                 // clean previous objects (if they exist)
@@ -329,27 +264,8 @@ public class playground : MonoBehaviour {
             }
             changeAlertMessage("Code sent correctly", new Color(220, 220, 220));
 
-            /*Debug.Log("request.GetResponse?");
-            Debug.Log("Header: " + request.Headers.ToString());
-            Debug.Log("GetType: " + request.GetType().ToString());
-            Debug.Log("GetResponseAsync.Status: " + request.GetResponseAsync().Status.ToString());
-            Debug.Log("GetResponseAsync.Result: " + request);
-            Debug.Log("HaveResponse: " + request.HaveResponse);
-            Debug.Log("requestToString: " + request.ToString());
-            Debug.Log("ContentType: " + request.ContentType);
-            Debug.Log("GetRequestStream: " + request.GetRequestStream().ToString());
-            Debug.Log("Cast?");*/
             response = (HttpWebResponse)request.GetResponse();
-            /*
-            Debug.Log("response");
-
-            Stream test = response.GetResponseStream();
-            Debug.Log("test");
-            StreamReader t2 = new System.IO.StreamReader(test);
-            Debug.Log("t2");
-            responseString = t2.ReadToEnd();
-            Debug.Log("!");*/
-
+            
             responseString = new System.IO.StreamReader(response.GetResponseStream()).ReadToEnd();
 
             Debug.LogWarning("responseString: " + responseString);
@@ -380,14 +296,7 @@ public class playground : MonoBehaviour {
             msg += "\n" + e.Message;
             msg += "\n" + e.TargetSite.ToString();
             msg += "\n" + e.Source;
-            /*msg += "\n" + e.Data;
-            var st = new System.Diagnostics.StackTrace(e, true);
-            // Get the top stack frame
-            var frame = st.GetFrame(0);
-            // Get the line number from the stack frame
-            var line = frame.GetFileLineNumber();
-            msg += "\nline:'" + line + "'";*/
-
+            
             changeAlertMessage(msg, new Color(220, 0, 0));
             Debug.Log(msg+"\n"+e.StackTrace.ToString());
 
@@ -420,8 +329,6 @@ public class playground : MonoBehaviour {
                 }
 
             }
-            //Debug.Log("MaxX: " + maxX + ", maxZ: " + maxZ);
-
 
             if (this.view.elements != null) for (int i = 0; i < this.view.elements.Length; i++)
                 {
@@ -448,33 +355,9 @@ public class playground : MonoBehaviour {
                             scale_const, //not necessary
                             col,
                             current_world);
-                        /*obj = new AVAR_Element(
-                            this.view.elements[i].id,
-                            this.view.elements[i].shape.shapeDescription,
-                                new Vector3(
-                                this.view.elements[i].position[0] * positioning[0], //+ shifting[0],
-                                this.view.elements[i].position[1] * positioning[1], // + shifting[1],
-                                this.view.elements[i].position[2] * positioning[2] // + shifting[2]
-                                ),
-                            Vector3.Scale(transform.localScale, new Vector3(
-                                this.view.elements[i].shape.extent[0] * scaling[0],
-                                this.view.elements[i].shape.extent[1] * scaling[1],
-                                this.view.elements[i].shape.extent[2] * scaling[2]
-                                )),
-                            col,
-                            current_world
-                            );*/
-
+                        
                         // adding other properties
-
-                        //obj.go.GetComponent<Renderer>().material.color = col;
-
-                        // add object to the list of objects
-                        //obj.go.tag = "WodenObj";
-                        //obj.go.transform.parent = world.transform;
-                        // not necessary: obj.transformParent(current_world);
-                        //obj.go.name = this.view.elements[i].id+"";
-
+                        
                         // adding interaction
                         var interaction = obj.go.AddComponent<InteractiveGameObject>();
                         interaction.interactions = this.interactions;
@@ -483,9 +366,7 @@ public class playground : MonoBehaviour {
                         interaction.popup_msg = obj.type;
 
                         element_count += 1;
-
-                        //if (min_z > obj.go.transform.position.y) min_z = obj.go.transform.position.y;
-
+                        
                     }
                     if (this.view.elements[i].type == "edge")
                     {
@@ -503,8 +384,6 @@ public class playground : MonoBehaviour {
                             col,
                             current_world
                             );
-
-                        //edge.transformParent(current_world);
                         
                         //if (this.DEBUG)
                         edge.print();
@@ -525,7 +404,7 @@ public class playground : MonoBehaviour {
                     // Roassal2 objects
                     if (engine == "NONE") engine = "ROASSAL2";
 
-                        // Create a Roassal2 element
+                    // Create a Roassal2 element
                     obj = new AVAR_Element(
                         this.view.RTelements[i],
                         positioning,
@@ -533,24 +412,6 @@ public class playground : MonoBehaviour {
                         scale_const,
                         col,
                         current_world);
-                    /*  scale_const,
-                        this.view.RTelements[i].id,
-                        this.view.RTelements[i].shape.shapeDescription,
-                        new Vector3( // position
-                            (this.view.RTelements[i].position[0] * positioning[0]) / scale_const, // + shifting[0],
-                            (this.view.RTelements[i].position[1] * positioning[1]) / scale_const // + shifting[1],
-                                                                                                 //shifting[2]
-                            ),
-                        new Vector3( // scale
-                            this.view.RTelements[i].shape.extent[0] * scaling[0] / scale_const,
-                            this.view.RTelements[i].shape.extent[1] * scaling[1] / scale_const,
-                            0.00002f
-                            ),
-                        col,
-                        current_world
-                        );*/
-
-                    //obj.transformParent(current_world);
                 }
 
                 else if (this.view.RTelements[i].type == "RTedge") {
@@ -573,7 +434,7 @@ public class playground : MonoBehaviour {
                     edge.transformParent(current_world);
 
                     index_edges += 1;
-                } // else if (this.view.RTelements[i].shape.type)
+                } 
             }
 
             if (this.view.value != null) { // if text representention of Roassal vars is not null
@@ -586,177 +447,23 @@ public class playground : MonoBehaviour {
             }
             Debug.Log("consoleText.text="+consoleText.text);
 
-            //this.world.transform.position = world_ceontroid_position;
+            //this.world.transform.position = world_centroid_position; [Not yet]
+
             changeAlertMessage("View loaded correctly", new Color(220, 20, 20));
 
             Vector3 v_shifting = new Vector3(shifting[0], shifting[1], shifting[2]);
-            //if(maxX !=0.0f && maxZ!=0.0f)
 
             var distance = 1.0f;
             current_world.transform.position = Camera.main.transform.position + Camera.main.transform.forward * distance;
             if (this.engine == "WODEN") {
                 current_world.transform.RotateAroundLocal(new Vector3(1, 0, 0), (float)Math.PI);
             } else {
-                //nothing yet! current_world.transform.position += v_shifting;
+                //current_world.transform.position += v_shifting;
             }
         }
         
     }
-
-    // function which returns a colored text (highlighted)
-    public string getHighlighted(string text) {
-        // string newtext = "";
-        string[] lines = text.Split('\n');
-        string[] new_line = new string[lines.Length];
-        string new_text = "";
-
-        //string[] separators = new string[] { ",", ".", "!", "\'", " ", "\'s" };
-        string[] reservedWords = new string[] {
-            "RWView", "RWCube", "RWUVSphere", "RWCylinder", "RWXLineLayout", "." };
-
-        char[] delimiterChars = { ' ', '\n', '(', ')' }; //{ ' ', ',', '.', ':', '\t','(',')' };
-
-        for (int index_line = 0; index_line < lines.Length; index_line++) {
-            string line = lines[index_line];
-            string[] letters = line.Split(' ');
-
-            // highlighting
-            for (int i = 1; i < letters.Length; i++) {
-                if (letters[i] == ":=") { // look for variables:
-                    this.st_variables.Add(letters[i - 1]); // Let's add previous token as variable!
-                }
-                else if (char.IsUpper(letters[i][0])) { // looking for classes:
-                    this.st_classes.Add(letters[i]);
-                }
-            }
-            new_line[index_line] = string.Join(" ", letters);
-        }
-
-        text = string.Join("\n", new_line);
-
-        foreach (string word in reservedWords) {
-            text = text.Replace(word, (string)("<color=blue>" + word + "</color>"));
-        }
-        Debug.LogWarning("[IN ] List of variables: \n");
-        foreach (string word in st_variables) {
-            text = text.Replace(word + " ", (string)("<color=green>" + word + " </color>"));
-            Debug.LogWarning("\t[VARS] " + word);
-        }
-        Debug.LogWarning("[IN ] List of classes: \n");
-        foreach (string word in st_classes) {
-            //text = text.Replace(word + " ", (string)("<color=blue>" + word + " </color>"));
-            text = text.Replace(word, (string)("<color=blue>" + word + "</color>"));
-            Debug.LogWarning("\t[CLASS] '" + word + "'");
-        }
-
-        return text;
-
-    }
-    public string[] getHighlightedText(string text) {
-         //  Notes
-         //  + Add a boolean for tokens already colored. This variable should be static.
-         //  + Skip "(" to evaluate if the token starts with Uppercase or not
-         //  + Catch the defined variables on the playground.
-
-        // string newtext = "";
-        char[] delimiterChars = { '\n' };
-        string[] reservedWords = new string[] { "RWView", "RWCube", "RWUVSphere", "RWCylinder", "RWXLineLayout", "." };
-        string highlighted_text = "";
-        string original_text    = "";
-        string [] lines = text.Split(delimiterChars);
-        string [] plane_lines = new string[lines.Length];
-        
-        for (int index_line = 0; index_line < lines.Length; index_line++) {
-
-            string line = lines[index_line];
-            // let's see if there's a "(" directly connected to a char. In that case, it will insert a " ".
-            for (int i = 0; i < line.Length - 1; i++)
-            {
-                if ((line[i] == '(' || line[i] == ')') && line[i+1] != ' ')
-                {
-                    line = line.Insert(i + 1, " ");
-                }
-                
-            }
-            Debug.Log("PREVIOUS LINE: "+lines[index_line]);
-            Debug.Log("CURRENT  LINE: " + line);
-
-            plane_lines[index_line] = line;
-            lines[index_line] = line;
-
-            string[] tokens = line.Split(' ');
-
-
-            // highlighting
-            for (int i = 0; i < tokens.Length; i++)
-            {
-                if (tokens[i].Length > 0)
-                {
-                    Debug.Log("[getHighlightedText] Token: '"+tokens[i]+"'");
-                    if (char.IsUpper(tokens[i][0]))
-                    {
-                        Debug.Log("[getHighlightedText] <color=blue>" + tokens[i] + "</color> first char: " + tokens[i][0]);
-                        //tokens[i] = "[" + tokens[i] + "]";
-                        tokens[i] = "<color=blue>" + tokens[i] + "</color>";
-                    } else if ((char)(tokens[i][tokens[i].Length - 1]) == ':')
-                    {
-                        Debug.Log("[getHighlightedText] <i>" + tokens[i] + "</i> first char: " + tokens[i][0]);
-                        //tokens[i] = "[" + tokens[i] + "]";
-                        tokens[i] = "<i>" + tokens[i] + "</i>";
-                    }
-                }
-
-                // looking for variables
-                /*if (tokens[i] == ":=")
-                { // look for variables:
-                    this.st_variables.Add(tokens[i - 1]); // Let's add previous token as variable!
-                }
-                else*/ /*if (char.IsUpper(tokens[i][0]))
-                { // looking for classes:
-                    this.st_classes.Add(tokens[i]);
-                }*/
-            }
-            lines[index_line] = string.Join(" ", tokens);
-
-            Debug.Log("plane line: " + plane_lines[index_line]);
-            Debug.Log("hlghd line: " + line);
-
-        }
-        original_text = string.Join("\n", plane_lines);
-        highlighted_text = string.Join("\n", lines);
-
-        Debug.Log("O. TEXT:"+original_text);
-        Debug.Log("H. TEXT:"+highlighted_text);
-
-        this.inputText.text = original_text;
-        Debug.Log("inputTextModified: '"+ original_text+"'");
-
-        /*foreach (string word in reservedWords)
-        {
-            text = text.Replace(word, (string)("<color=blue>" + word + "</color>"));
-        }*/
-        /*Debug.LogWarning("[IN ] List of variables: \n");
-        foreach (string word in st_variables)
-        {
-            text = text.Replace(word + " ", (string)("<color=green>" + word + " </color>"));
-            Debug.LogWarning("\t[VARS] " + word);
-        }
-        Debug.LogWarning("[IN ] List of classes: \n");
-        foreach (string word in st_classes)
-        {
-            //text = text.Replace(word + " ", (string)("<color=blue>" + word + " </color>"));
-            text = text.Replace(word, (string)("<color=blue>" + word + "</color>"));
-            Debug.LogWarning("\t[CLASS] '" + word + "'");
-        }*/
-
-       
-        // temporal (Monday, May 6th)
-        //this.changeAlertMessage(new_text.Replace("\n",""), Color.yellow);
-
-        return new string [] {original_text, highlighted_text } ;
-
-    }
-
+    
     private void showDebug()
     {
         this.frameCount++;
@@ -782,9 +489,6 @@ public class playground : MonoBehaviour {
             this.debugPanel.GetComponent<Image>().color = new Color(0.5f, 0.5f, 0.5f, 0.7f);
             this.debugText.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
         }
-        
-        //Debug.Log( th.getHighlightedText(inputField.text) );
-        //msg += "\nL:"+th.getTokensAsStrings(); //th.getHighlightedText(inputField.text);
         
         this.debugText.GetComponent<Text>().text = msg;
     }

@@ -15,7 +15,6 @@ public class AVAR_Element
 
     public AVAR_Element(JSONElement element, float [] positioning, float[] scaling, float scale_const, Color col, GameObject world)
     {
-        //string id, string type, Vector3 position, Vector3 scale, Color col, GameObject world)
         this.id = element.id;
         this.type = element.shape.shapeDescription;
         
@@ -36,9 +35,9 @@ public class AVAR_Element
         {
             this.engine = "WODEN";
             this.position = new Vector3( // position
-                element.position[0] * positioning[0], //+ shifting[0],
+                element.position[0] * positioning[0], // + shifting[0],
                 element.position[1] * positioning[1], // + shifting[1],
-                element.position[2] * positioning[2] // + shifting[2]
+                element.position[2] * positioning[2]  // + shifting[2]
              );
             this.scale = new Vector3( // scale
                 element.shape.extent[0] * scaling[0],
@@ -77,38 +76,19 @@ public class AVAR_Element
                     this.transformParent(c.gameObject);
                     
                     RectTransform rtgo = this.go.GetComponent<RectTransform>();
-                    //rtgo.sizeDelta = new Vector2(this.scale.x * 50, this.scale.y * 50);
-                    //rtgo.sizeDelta = new Vector2(test_label_scaling, test_label_scaling);
                     rtgo.sizeDelta = text_scaling;
                     rtgo.anchoredPosition = new Vector2(0, 0);
 
-
-                    //this.go.transform.SetParent(GameObject.Find("Canvas").gameObject.transform);
-                    /*RectTransform rt = this.go.GetComponent<RectTransform>();
-                    rt.sizeDelta = new Vector2(this.scale.x, this.scale.y);
-                    rt.anchoredPosition = new Vector2(0, 0); // by default
-                    this.go.AddComponent<Text>().text = element.shape.text;
-                    this.go.GetComponent<Text>().font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
-                    */
+                    
                     GameObject label = new GameObject("\"" + element.shape.text + "\"", typeof(RectTransform));
                     label.transform.SetParent(this.go.transform);
                     RectTransform rt = label.GetComponent<RectTransform>();
-                    //rt.sizeDelta = new Vector2(this.scale.x, this.scale.y);
                     rt.sizeDelta = text_scaling;
-                    //rt.sizeDelta = new Vector2(test_label_scaling, test_label_scaling);
-                    //Debug.Log("label extent: (sizeDelta)=" + rt.sizeDelta); // [Pending] this value is "extent"
                     rt.anchoredPosition = new Vector2(0, 0); // by default
                     this.go.AddComponent<Text>().text = element.shape.text;
                     this.go.GetComponent<Text>().font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
                     this.go.GetComponent<Text>().fontSize = 1;
-                    /*
-                    this.go = new GameObject("RTlabel");
-                    GameObject child = new GameObject("\""+element.shape.text+"\"", typeof(RectTransform));
-                    child.transform.SetParent(go.transform);
-                    Text t = child.AddComponent<Text>();
-                    t.text = element.shape.text;
-                    child.GetComponent<Text>().font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
-                    */
+                    
                 }
                 else {
                     this.go = GameObject.CreatePrimitive(PrimitiveType.Cube);

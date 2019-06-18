@@ -87,7 +87,6 @@ public class WorldCursor : MonoBehaviour
 			go.transform.localScale);
 		float width = objectSize.x;
 		Debug.Log(width);
-		// = Mathf.Clamp(width, 0.125f, 0.5f);
 		return new Vector3(width, width / 2, width);
 	}
 

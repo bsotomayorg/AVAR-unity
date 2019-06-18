@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+// Leonel's class. We are not using it already, but it helps as reference
 public class CreateCuboids : MonoBehaviour {
 	public TextAsset data;
 	List<GameObject> cubes;
 	public float repeatRate = 0.5f;
 	public int timeoutCounter = 10;
-
-    //public InputField playground; // bsotomayor test (April, 15th)
 
     void Start () {
 		cubes = new List<GameObject> ();
@@ -86,6 +85,7 @@ public class CreateCuboids : MonoBehaviour {
                     (float.Parse(attributes[2], System.Globalization.CultureInfo.InvariantCulture)) * positioning.y + shifting.y, 
                     (float.Parse(attributes[3], System.Globalization.CultureInfo.InvariantCulture)) * positioning.z + shifting.z);
                 obj.transform.position = position;
+                
                 // set properties:
                 // color:
                 Color color = new Color(
@@ -93,8 +93,9 @@ public class CreateCuboids : MonoBehaviour {
                     float.Parse(attributes[8], System.Globalization.CultureInfo.InvariantCulture),
                     float.Parse(attributes[9], System.Globalization.CultureInfo.InvariantCulture));
                 obj.GetComponent<Renderer>().material.color = color;
+                // set parent
                 obj.transform.parent = this.transform;
-                // behaviour ?? (ask to Leonel!)
+                // adding component
                 obj.AddComponent<TapToSelectCube>();
                 cubes.Add(obj);
             }
@@ -111,10 +112,6 @@ public class CreateCuboids : MonoBehaviour {
 		bases.transform.parent = this.transform.parent;
 		bases.name = "";
 		cubes.Add (bases);
-
-        // test April 15th
-        //playground.text = "Test text :)"; // <--- ACA VOY :)
-        //playground.transform.Translate(1, 1, 1);
         
 	
 	}
@@ -127,8 +124,7 @@ public class CreateCuboids : MonoBehaviour {
 		//Debug.Log ("Before: "+cubes.Count);
 		foreach (GameObject o in cubes) {
 			Destroy(o);
-		}
-		//Debug.Log ("After: "+cubes.Count);
+		} 
 
 	}
 }

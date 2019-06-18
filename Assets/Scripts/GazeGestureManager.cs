@@ -28,7 +28,7 @@ public class GazeGestureManager : MonoBehaviour
 
     LineRenderer line;
 
-    public short selected_object = -1; // -1: null, 0: world, 1: woden object
+    public short selected_object = -1; // -1: null, 0: world, 1: woden or roassal2 object
 
     // Start is called before the first frame update
     void Awake() {
@@ -49,7 +49,7 @@ public class GazeGestureManager : MonoBehaviour
         // Set up a GestureRecognizer to detect Select gestures.
         recognizer = new GestureRecognizer();
 
-        recognizer.SetRecognizableGestures(GestureSettings.Tap | GestureSettings.Hold | GestureSettings.NavigationX | GestureSettings.NavigationY);
+        recognizer.SetRecognizableGestures(GestureSettings.Tap | GestureSettings.Hold);//| GestureSettings.NavigationX | GestureSettings.NavigationY);
 
         recognizer.Tapped += (args) =>
         {
@@ -58,7 +58,7 @@ public class GazeGestureManager : MonoBehaviour
             if (this.selected_object == -1) { // if previously was nothing selected
                 if(FocusedObject != null) { // an object was selected
                     SelectedObject = hitInfo.collider.gameObject;
-                    if (Input.GetKey(KeyCode.LeftControl)){ // then, we want to select a complete view
+                    if (true){//Input.GetKey(KeyCode.LeftControl)){ // then, we want to select a complete view
                         Debug.LogWarning("Seleccionado el padre '" + SelectedObject.transform.parent.gameObject.name + "'") ;
                         SelectedObject = SelectedObject.transform.parent.gameObject; // World/view selection
                         this.selected_object = 0; //?
@@ -84,7 +84,6 @@ public class GazeGestureManager : MonoBehaviour
 
             } else if (this.selected_object == 0) { // if previously was selected the world
                 // assign position to the selected object
-                //FocusedObject = GameObject.Find("World").gameObject;
                 if (SelectedObject == null) { Debug.LogWarning("SelectedObj = 'null'"); }
                 else { Debug.LogWarning("SelectedObj = " + SelectedObject.name); }
                 SelectedObject.SendMessageUpwards("setInactiveWorld", SendMessageOptions.DontRequireReceiver);
@@ -108,7 +107,7 @@ public class GazeGestureManager : MonoBehaviour
         };
         recognizer.NavigationUpdated += (args) => {
             InteractionManager.InteractionSourceUpdatedLegacy += GetPosition;
-            float [] rotation_velocity = { 1.0f, 2.0f, 1.0f };// 0.2f;
+            float [] rotation_velocity = { 0.5f, 1.0f, 0.5f };// 0.2f;
 
             Vector3 dif = (this.handPosition_current - this.handPosition_start);
 

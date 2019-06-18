@@ -5,8 +5,7 @@ using System.Collections.Generic;
 public class JSONShape {
     public string shapeDescription;
     public List<float> extent;
-    public string text;
-    //public List<float> color;
+    public string text; 
     public int id;
 }
 
