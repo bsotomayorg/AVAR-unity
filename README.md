@@ -87,7 +87,7 @@
                     },{
                     "shape":{
                         "color":[0.0,0.0,1.0,1.0],
-                        "shapeDescription":"cylinder",
+                        "shapeDescription":"mainCamera",
                         "extent":[1.0,1.0,1.0]
                     },
                 "position":[1.0,0.0,0.0],
