@@ -48,6 +48,9 @@ public class playground : MonoBehaviour {
     private Boolean[] parsedCodeBool;
     private string[] parsedCodeText;
     TextHighlighter th;
+    HashSet<string> hset; // test bsotomayor 0618
+    private ArrayList st_variables = new ArrayList();
+    private ArrayList st_classes = new ArrayList();
 
     // text handlying
     private string textFieldString = "";
@@ -58,8 +61,7 @@ public class playground : MonoBehaviour {
     // connection attrs
     public string IP = "http://127.0.0.1";
     public string port = "1702";
-    private ArrayList st_variables = new ArrayList();
-    private ArrayList st_classes = new ArrayList();
+    
 
     private string responseString;
     private HttpWebResponse response;
@@ -143,9 +145,15 @@ public class playground : MonoBehaviour {
     void manageInput(InputField input) {
 
         //string temp_script_versions = "";
-        if (Input.anyKey && !this.isHide) {
+        if (Input.anyKeyDown && !this.isHide) {
             // get highlitedtext
-            // highlighted text: this.inputColoredText.text = th.getHighlightedText(inputField.text);
+            //this.inputColoredText.text = th.justAnotherHLTAttempt(inputField.text);
+            this.inputField.text = th.justAnotherHLTAttempt(inputField.text);
+            /*this.inputColoredText.text = th.getHighlightedText(inputField.text);
+            var outstr = "";
+            outstr += "caretPlainText:" + this.inputField.caretPosition + "\n";
+            outstr += "caretColorized:" + this.input.caretPosition + "\n";
+            Debug.Log();*/
         }
 
         if (Input.GetKeyDown(KeyCode.LeftAlt)) {
@@ -266,8 +274,8 @@ public class playground : MonoBehaviour {
 
             response = (HttpWebResponse)request.GetResponse();
             
+            // let's read the response stream. It is stored in 'responseString' variable
             responseString = new System.IO.StreamReader(response.GetResponseStream()).ReadToEnd();
-
             Debug.LogWarning("responseString: " + responseString);
 
             generate_geometries = !responseString.Contains("Message"); // true if the response contains elements
@@ -275,7 +283,7 @@ public class playground : MonoBehaviour {
             if (responseString.Contains("Message")){ // Systax exception or error
                 Debug.Log("ERROR: "+responseString+" ");
                 Pharo_SyntaxError(responseString);
-            } else {
+            } else { // script executed successfully !
                 this.view = JsonUtility.FromJson<JSONRootElement>(responseString);
                 if(this.view.elements != null)
                     Debug.LogWarning("JSON contains " + this.view.elements.Length + " lines");
