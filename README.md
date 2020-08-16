@@ -1,170 +1,263 @@
 # AVAR: Agile Visualizations in Immersive Augmented Reality
 
+## Contents
+1. [Install Unity and Visual Studio for Mixed Reality Development](#1-install-unity-and-visual-studio-for-mixed-reality-development)
+2. [Install Woden on Pharo 7.0](#2-install-woden-on-pharo-70)
+3. [Running AVAR](#3-running-avar)
+4. [Running Server Mode](#4-running-server-mode)
+5. [User interactions](#5-user-interactions)
+
+
+---
+
 ## How to Install AVAR
-### Install Unity and Visual Studio for Mixed Reality Development
-1. Install Mixed Reality Tools
+### 1. Install Unity and Visual Studio for Mixed Reality Development
+**1.1. Install Mixed Reality Tools**
 
-    Follow the next Microsoft manual: [https://docs.microsoft.com/en-us/windows/mixed-reality/install-the-tools](https://docs.microsoft.com/en-us/windows/mixed-reality/install-the-tools). 
+Follow the next Microsoft manual: [https://docs.microsoft.com/en-us/windows/mixed-reality/install-the-tools](https://docs.microsoft.com/en-us/windows/mixed-reality/install-the-tools). 
 
-    Note: We used Unity (v 2018.3.11f1), Microsoft Visual Studio Community 2017 (Version 15.9.10), and Microsoft .NET Framework (Version 4.7.03190).
+Note: We used Unity (v 2018.3.11f1), Microsoft Visual Studio Community 2017 (Version 15.9.10), and Microsoft .NET Framework (Version 4.7.03190).
 
-2. Download AVAR project
+**1.2. Download AVAR project**
 
-    Clone or download this project
+Clone or download this project
 
-    ```
-    $ git clone https://github.com/bsotomayor92/AVAR-unity.git
-    ```
+```
+$ git clone https://github.com/bsotomayor92/AVAR-unity.git
+```
 
-    Note: Over this folder you will have both Unity and Visual Studio projects.
+Note: Over this folder you will have both Unity and Visual Studio projects.
 
-3. Open you the project on Visual Studio:
+**1.3. Open you the project on Visual Studio**
 
-    * Visual Studio will find individual components which should be on the project. If not, they will be installed. This operation may require your computer to restart.
+* Visual Studio will find individual components which should be on the project. If not, they will be installed. This operation may require your computer to restart.
 
-    * Once you open Visual Studio for first time it will generate source files and build the project.
+* Once you open Visual Studio for the first time it will generate source files and build the project.
 
-4. Open your the project on Unity
+**1.4. Open your the project on Unity**
 
-    Open Unity, click on "Open a project folder" and select the folder downloaded from GitHub ("AVAR-unity").
+Open Unity, click on "Open a project folder" and select the folder downloaded from GitHub ("AVAR-unity").
+
+On Unity, click on "Edit" tab, and select "Project Settings". Then, select tab "Tags and Layers" and add/type the next tags:
++ WodenObj
++ Roassal2Obj
++ Edge
+
+
+<br/>
+
+---
+
             
-### Install Woden on Pharo 7.0
+### 2. Install Woden on Pharo 7.0
 
-1. Installing Pharo Launcher:
+**2.1. Installing Pharo Launcher**
 
-    Go to [https://pharo.org/download](https://pharo.org/download). Select your OS and download that version of Pharo Roassal. You can follow the installation documentation for each OS distribution.
+Go to [https://pharo.org/download](https://pharo.org/download). Select your OS and download that version of Pharo Roassal. You can follow the installation documentation for each OS distribution.
 
-2. Create an empty Virtual Machine:
+**2.2. Create an empty Virtual Machine**
 
-    Create a virtual machine (VM) using Pharo Launcher by selecting Pharo 7.0 - 64bit (stable).
+Create a virtual machine (VM) using Pharo Launcher by selecting Pharo 7.0 - 64bit (stable).
 
-3. Download Woden
+**2.3. Download Woden**
 
-    Open a Playground window (<kbd>Ctrl</kbd>+<kbd>O</kbd>+<kbd>W</kbd>) and type the next:
+Open a Playground window (<kbd>Ctrl</kbd>+<kbd>O</kbd>+<kbd>W</kbd>) and type the next:
 
-    ```
-    Metacello new
-       baseline: 'WodenEngine';
-       repository: 'github://ronsaldo/woden/tonel';
-       load.
-    ```
+```
+Metacello new
+   baseline: 'WodenEngine';
+   repository: 'github://ronsaldo/woden/tonel';
+   load.
+```
 
-    Then, execute the script by pressing <kbd>Ctrl</kbd>+<kbd>D</kbd> ("DoIt"). This will download Woden Roassal Engine from the github repository.
+Then, execute the script by pressing <kbd>Ctrl</kbd>+<kbd>D</kbd> ("DoIt"). This will download Woden Engine from the github repository.
 
-4. Download AVAR changes
+**2.4. Download Roassal2**
+    
+Open a Playground window <kbd>Ctrl</kbd>+<kbd>O</kbd>+<kbd>W</kbd> and type the following:
 
-    1. Open Monticello Browser by pressing <kbd>Ctrl</kbd>+<kbd>O</kbd>+<kbd>B</kbd>.
-    2. On the next input field, search "WodenEngine-Roassal" and select it.
-    3. Click on "+Repository" button.
+```
+Gofer it
+       smalltalkhubUser: 'ObjectProfile' project: 'Roassal2';
+       configurationOf: 'Roassal2';
+       loadStable.
+```
 
-        1. Select "smalltalkhub.com" option and complete as follows:
-        
-            ```
-            MCSmalltalkhubRepository
-                owner: 'Boris'
-                project: 'AVAR_test'
-            ```
-        
-        2. Select "WodenEngine-Roassal" on the Right Panel and click on "Load" button. This will activate a procedure which overwrite archives.
+Then, execute the script by pressing <kbd>Ctrl</kbd>+<kbd>D</kbd> (“DoIt”). This will download Roassal2 Engine from the github repository.
 
 
-5. Testing
-    In order to verify if both repositories have been correctly installed copy the next example and paste it over a Pharo playground panel:
-    ```smalltalk
-    v := RWView new.
-    els:= RWCylinder new color: Color blue; elementsOn: (1 to: 2).
-    v addAll: els.
-    RWXZGridLayout on: els.
-    v run.
-    ```
-    Next, select all the code and press <kbd>Ctrl</kbd>+<kbd>P</kbd> ("Print"). This will show a JSON representation of the view and its elements. In this case, the JSON corresponds to:
-    ```json
-    {
-        "elements":[
-            {
-                "position":[0.0,0.0,5.0],
-                "type":"camera"
-                    },{
-                    "shape":{
-                        "color":[0.0,0.0,1.0,1.0],
-                        "shapeDescription":"mainCamera",
-                        "extent":[1.0,1.0,1.0]
-                    },
-                "position":[1.0,0.0,0.0],
-                "type":"element"
-            },{
+**2.5. Download AVAR changes**
+
+1. Open Monticello Browser by pressing <kbd>Ctrl</kbd>+<kbd>O</kbd>+<kbd>B</kbd>.
+2. On the next input field, search "WodenEngine-Roassal" and select it.
+3. Click on "+Repository" button.
+
+    1. Select "smalltalkhub.com" option and complete as follows:
+    
+        ```
+        MCSmalltalkhubRepository
+            owner: 'Boris'
+            project: 'AVAR_test'
+        ```
+    
+    2. Select "WodenEngine-Roassal" on the Right Panel and click on "Load" button. This will activate a procedure which overwrite archives.
+
+
+**2.6. Testing**
+
+In order to verify if both repositories have been correctly installed copy the next example and paste it over a Pharo playground panel:
+
+```smalltalk
+v := RWView new.
+els:= RWCylinder new color: Color blue; elementsOn: (1 to: 2).
+v addAll: els.
+RWXZGridLayout on: els.
+v run.
+```
+
+Next, select all the code and press <kbd>Ctrl</kbd>+<kbd>P</kbd> ("Print"). This will show a JSON representation of the view and its elements. In this case, the JSON corresponds to:
+
+```json
+{
+    "elements":[
+        {
+            "position":[0.0,0.0,5.0],
+            "type":"camera"
+                },{
                 "shape":{
                     "color":[0.0,0.0,1.0,1.0],
-                    "shapeDescription":"uvsphere",
+                    "shapeDescription":"mainCamera",
                     "extent":[1.0,1.0,1.0]
                 },
-                "position":[-1.0,0.0,0.0],
-                "type":"element"
-            },{
-                "shape":{
-                    "color":[1.0,0.0,0.0,1.0],
-                    "shapeDescription":"cube",
-                    "extent":[1.0,1.0,1.0]
-                },
-                "position":[1.0,0.0,0.0],
-                "type":"element"
-            }
-        ]
-    }
-    ```
+            "position":[1.0,0.0,0.0],
+            "type":"element"
+        },{
+            "shape":{
+                "color":[0.0,0.0,1.0,1.0],
+                "shapeDescription":"uvsphere",
+                "extent":[1.0,1.0,1.0]
+            },
+            "position":[-1.0,0.0,0.0],
+            "type":"element"
+        },{
+            "shape":{
+                "color":[1.0,0.0,0.0,1.0],
+                "shapeDescription":"cube",
+                "extent":[1.0,1.0,1.0]
+            },
+            "position":[1.0,0.0,0.0],
+            "type":"element"
+        }
+    ]
+}
+```
 
-## Running AVAR
+<br/>
 
-1. Create a Pharo Service:
+---
+
+### 3. Running AVAR
+
+**3.1. Create a Pharo Service**
     
-    1. Open your Pharo Image, open a playground window, and then execute next code:
+1. Open your Pharo Image, open a playground window, and then execute next code:
+
+```smalltalk
+(ZnServer startDefaultOn: 1702)
+    onRequestRespond: [ :request |
+        script := (request contents).
+        ZnResponse ok: (ZnEntity text: ( [ZnReadEvalPrintDelegate evaluate: script ] on: Error do: [:e | self halt. e asString, '. Message: ', e messageText asString, '. Location: ', e location asString.])) ].
+```
+
+In the current version, the server has to be started like this: 
+
+```smalltalk
+(ZnServer startDefaultOn: 1702)
+    onRequestRespond: [ :request |
+        script := (request contents).
+        ZnResponse ok: (ZnEntity text: (
+            [[ZnReadEvalPrintDelegate evaluate: script. ]
+            on: Error do:
+            [:e | (NeoJSONWriter toString: (Dictionary newFromPairs: { #errormsg . ((Dictionary newFromPairs: { #message . e messageText asString })) })) ]]
+            on: SyntaxErrorNotification do:
+            [:ex | NeoJSONWriter toString: (Dictionary newFromPairs: { #errormsg . ((Dictionary newFromPairs: { #message . ex messageText asString. #location . ex location})) })]
+            )). ].
+```
+
+This will create a Service which evaluates and sends responses to unity application on Hololens. This response contains a geometrical description of each object created in Pharo Roassal and Woden Engine.
+
+This will create a Service which evaluates and sends responses to unity application on Hololens. This response contains geometrical description of each object created in Pharo Roassal and Woden Engine.
+
+**3.2. IP Setting in the Unity App**
     
-    ```smalltalk
-    (ZnServer startDefaultOn: 1702)
-        onRequestRespond: [ :request |
-            script := (request contents).
-            ZnResponse ok: (ZnEntity text: ( [ZnReadEvalPrintDelegate evaluate: script ] on: Error do: [:e | self halt. e asString, '. Message: ', e messageText asString, '. Location: ', e location asString.])) ].
-    ```
+Press <kbd>Ctrl</kbd>+<kbd>N</kbd> in order to change the IP and Port and a new menu with IP Setting will appear: 
+
+![IP settings](./readme_figs/IP_port_menu.png)
+
+Then, set these parameters according to your configuration. If you are running Pharo and Unity on the same computer, then the IP corresponds to **https://127.0.0.1/**. In this example, the Port indicated was `1702`.
+
+**3.3. Using HoloLens**
     
-    This will create a Service which evaluates and sends responses to unity application on Hololens. This response contains geometrical description of each object created in Pharo Roassal and Woden Engine.
-
-2. Use the Unity App
+1. On Hololens:
     
-    1. Open the Unity project. In the "Hierarchy view, select the GameObject "PlayGroundManager".
+    1. Install (if it is not yet) the "Holographic Remoting Player" from Microsoft web store ([link](https://www.microsoft.com/en-us/p/holographic-remoting-player/9nblggh4sv40?activetab=pivot:overviewtab)). Once installed, open it by tapping in the application icon.
     
-    2. Using the "Inspector" view, change the attributes "IP" and "Port" according to your configuration. If you are running Pharo and Unity on the same computer, then the IP corresponds to [http://127.0.0.1/](http://127.0.0.1). In this example, the Port indicated was "1702".
+    2. The app shows the Hololens IP. This will be necessary in order to connect Unity and the Hololens.
 
-3. Using HoloLens:
+2. On Unity GUI:
     
-    1. On Hololens:
-        
-        1. Install (if it is not yet) the "Holographic Remoting Player" from Microsoft web store ([direct link](https://www.microsoft.com/en-us/p/holographic-remoting-player/9nblggh4sv40?activetab=pivot:overviewtab)). Once installed, open it by tapping in the application icon.
-        
-        2. The app shows the Hololens IP. This will be necessary in order to connect Unity and the Hololens.
+    1. Click in "Holographic" Tab.
     
-    2. On Unity GUI:
-        
-        1. Click in "Holographic" Tab.
-        
-        2. Select "Remote to Device".
-        
-        3. Insert the Remote Machine IP indicated in "Holographic Remoting Player" and click on "Connect" button.
-
-### User interaction
-
-1. Keyboard shortcuts
-
-    In addition to write code, AVAR app allows the possibility to do different operations for execution and interface option.
-
-    Current shortcut list :
-    * <kbd>ALT</kbd>: Hide/Show the Virtual Panel.
-    * <kbd>CTRL</kbd>+<kbd>D</kbd>: Evaluate the script and add as a new view/scene. It simulates the Pharo "Do it" execution.
-    * <kbd>CTRL</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd>: Evaluate the script, erases all the previous views/scenes and adds the current one.
-
-2. Gestures for interactions
+    2. Select "Remote to Device".
     
-    Currently, it is possible to select an object after targeting it with [Gaze](https://docs.microsoft.com/en-us/windows/mixed-reality/gaze) and doing an [Air Tap](https://docs.microsoft.com/en-us/windows/mixed-reality/gestures#air-tap). After selecting, the object will follow the camera. Then, do a Air Tap again for set the new position of the object.
+    3. Insert the Remote Machine IP indicated in "Holographic Remoting Player" and click on "Connect" button.
 
-    More information about Hololens Gestures: [https://docs.microsoft.com/en-us/windows/mixed-reality/gestures](https://docs.microsoft.com/en-us/windows/mixed-reality/gestures).
+<br/>
+
+---
+
+### 4. Running Server Mode
+It is possible to turn the AVAR application in Unity as Server. To enable this "Server mode", you have to press <kbd>Ctrl</kbd>+<kbd>W</kbd> when the Code Panel is visible. By doing this, the Debug Console in Unity will indicate the status of the server, the ports which it is listening to, and the JSON response which Pharo (client) sends to Unity (server).
+
+![Debug console showing the Server Mode status](./readme_figs/example_servmode_status.png)
+
+Example:
+
+In Pharo VM you need to execute the method “runOnServer:” followed by the url where the Unity application is located. Let’s create a view using Woden objects:
+
+```smalltalk
+v := RWView new.
+    els:= RWCylinder new color: Color green; elementsOn: (1 to: 9).
+    v addAll: els.
+    RWXZGridLayout on: els.
+    v runOnServer: 'http://127.0.0.1:8052'. 
+```
+
+After doing this, the Unity application will read a JSON from Pharo client and deploy all the elements into a new view in AVAR
+
+![Debug console showing the Server Mode status](./readme_figs/example_unity_pharo_view.png)
+
+<br/>
+
+---
+
+### 5. User interactions
+
+**5.1. Keyboard shortcuts**
+
+In addition to write code, AVAR app allows the possibility to do different operations for execution and interface option.
+
+Current shortcut list :
+* <kbd>ALT</kbd>: Hide/Show the Virtual Panel.
+* <kbd>CTRL</kbd>+<kbd>D</kbd>: Evaluate the script and add as a new view/scene. It simulates the Pharo "Do it" execution.
+* <kbd>CTRL</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd>: Evaluate the script, erases all the previous views/scenes and adds the current one.
+* <kbd>CTRL</kbd>+<kbd>E</kbd>: Open the example list. Use the same hotkey or “ESC” to turn it off.
+* <kbd>CTRL</kbd>+<kbd>TAB</kbd>: Switch the main panel between code input panel and console panel.
+
+**5.2. Gestures for interactions**
+
+Currently, it is possible to select an object after targeting it with [Gaze](https://docs.microsoft.com/en-us/windows/mixed-reality/gaze) and doing an [Air Tap](https://docs.microsoft.com/en-us/windows/mixed-reality/gestures#air-tap). After selecting, the object will follow the camera. Then, do a Air Tap again for set the new position of the object.
+
+More information about Hololens Gestures: [https://docs.microsoft.com/en-us/windows/mixed-reality/gestures](https://docs.microsoft.com/en-us/windows/mixed-reality/gestures).
 
 ---
