@@ -166,15 +166,6 @@ Next, select all the code and press <kbd>Ctrl</kbd>+<kbd>P</kbd> ("Print"). This
 (ZnServer startDefaultOn: 1702)
     onRequestRespond: [ :request |
         script := (request contents).
-        ZnResponse ok: (ZnEntity text: ( [ZnReadEvalPrintDelegate evaluate: script ] on: Error do: [:e | self halt. e asString, '. Message: ', e messageText asString, '. Location: ', e location asString.])) ].
-```
-
-In the current version, the server has to be started like this: 
-
-```smalltalk
-(ZnServer startDefaultOn: 1702)
-    onRequestRespond: [ :request |
-        script := (request contents).
         ZnResponse ok: (ZnEntity text: (
             [[ZnReadEvalPrintDelegate evaluate: script. ]
             on: Error do:
