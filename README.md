@@ -175,8 +175,6 @@ Next, select all the code and press <kbd>Ctrl</kbd>+<kbd>P</kbd> ("Print"). This
             )). ].
 ```
 
-This will create a Service which evaluates and sends responses to unity application on Hololens. This response contains a geometrical description of each object created in Pharo Roassal and Woden Engine.
-
 This will create a Service which evaluates and sends responses to unity application on Hololens. This response contains geometrical description of each object created in Pharo Roassal and Woden Engine.
 
 **3.2. IP Setting in the Unity App**
