@@ -66,8 +66,8 @@ Open a Playground window (<kbd>Ctrl</kbd>+<kbd>O</kbd>+<kbd>W</kbd>) and type th
 ```
 Metacello new
    baseline: 'WodenEngine';
-   repository: 'github://ronsaldo/woden/tonel';
-   load.
+   repository: 'github://woden-engine/woden/tonel';
+   load
 ```
 
 Then, execute the script by pressing <kbd>Ctrl</kbd>+<kbd>D</kbd> ("DoIt"). This will download Woden Engine from the github repository.
