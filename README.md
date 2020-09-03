@@ -2,7 +2,7 @@
 
 ## Contents
 1. [Install Unity and Visual Studio for Mixed Reality Development](#1-install-unity-and-visual-studio-for-mixed-reality-development)
-2. [Install Woden on Pharo 7.0](#2-install-woden-on-pharo-70)
+2. [Install Woden on Pharo 8.0](#2-install-woden-on-pharo-80)
 3. [Running AVAR](#3-running-avar)
 4. [Running Server Mode](#4-running-server-mode)
 5. [User interactions](#5-user-interactions)
@@ -49,7 +49,7 @@ On Unity, click on "Edit" tab, and select "Project Settings". Then, select tab "
 ---
 
             
-### 2. Install Woden on Pharo 7.0
+### 2. Install Woden on Pharo 8.0
 
 **2.1. Installing Pharo Launcher**
 
@@ -57,7 +57,7 @@ Go to [https://pharo.org/download](https://pharo.org/download). Select your OS a
 
 **2.2. Create an empty Virtual Machine**
 
-Create a virtual machine (VM) using Pharo Launcher by selecting Pharo 7.0 - 64bit (stable).
+Create a virtual machine (VM) using Pharo Launcher by selecting Pharo 8.0 - 64bit (stable).
 
 **2.3. Download Woden**
 
@@ -73,18 +73,19 @@ Metacello new
 Then, execute the script by pressing <kbd>Ctrl</kbd>+<kbd>D</kbd> ("DoIt"). This will download Woden Engine from the github repository.
 
 **2.4. Download Roassal2**
-    
-Open a Playground window <kbd>Ctrl</kbd>+<kbd>O</kbd>+<kbd>W</kbd> and type the following:
+
+Open a Playground window (<kbd>Ctrl</kbd>+<kbd>O</kbd>+<kbd>W</kbd>) and type the next:
 
 ```
-Gofer it
-       smalltalkhubUser: 'ObjectProfile' project: 'Roassal2';
-       configurationOf: 'Roassal2';
-       loadStable.
+Metacello new
+    baseline: 'Roassal2';
+    repository: 'github://ObjectProfile/Roassal2/src';
+    load.
 ```
 
-Then, execute the script by pressing <kbd>Ctrl</kbd>+<kbd>D</kbd> (“DoIt”). This will download Roassal2 Engine from the github repository.
+Then, execute the script by pressing <kbd>Ctrl</kbd>+<kbd>D</kbd> ("DoIt"). This will download Roassal2 Engine from the github repository.
 
+Alternatively, you can install Roassal2 via Pharo Catalog Browser.
 
 **2.5. Download AVAR changes**
 
