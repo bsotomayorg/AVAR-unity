@@ -55,7 +55,7 @@ On Unity, click on "Edit" tab, and select "Project Settings". Then, select tab "
 
 (1a) Open the .sln document, then open the Solution Explorer, and then open "Package.appxmanifest" on the path of the project.
 
-![Debug console showing the Server Mode status](./readme_figs/Solution explorer.png)
+![Debug console showing the Server Mode status](./readme_figs/SolutionExplorer.png)
 
 (1b) Choose "Declarations" tab, and then add "File Type Associations"
 
