@@ -43,10 +43,27 @@ On Unity, click on "Edit" tab, and select "Project Settings". Then, select tab "
 + Roassal2Obj
 + Edge
 
-**1.5. Change the settings and then build the Unity project
+**1.5. Change the settings and then build the Unity project**
 
 (1) In Unity, File==>Build Settings： Change the platform to Universal Windows Platform (UWP) and activate VR support.
+
 (2) In Unity, File==>Build Settings==>Player Settings==>Publish Settings： Activate "InternetClient" and "InternetClientServer".
+
+(3) Build the project.
+
+**1.6. Implement this Unity project to HoloLens**
+
+(1a) Open the .sln document, then open the Solution Explorer, and then open "Package.appxmanifest" on the path of the project.
+
+![Debug console showing the Server Mode status](./readme_figs/Solution explorer.png)
+
+(1b) Choose "Declarations" tab, and then add "File Type Associations"
+
+![Debug console showing the Server Mode status](./readme_figs/Declarations.PNG)
+
+(1c) add ".txt" in "name" and in "file type"，save it by Ctrl+S , now your project can interact with .txt document.
+
+![Debug console showing the Server Mode status](./readme_figs/addTxt.PNG)
   
 
 
