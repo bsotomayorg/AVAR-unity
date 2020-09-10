@@ -266,7 +266,7 @@ After doing this, the Unity application will read a JSON from Pharo client and d
 
 ---
 
-### 5. User interactions
+<### 5. User interactions
 
 **5.1. Keyboard shortcuts**
 
@@ -285,4 +285,4 @@ Currently, it is possible to select an object after targeting it with [Gaze](htt
 
 More information about Hololens Gestures: [https://docs.microsoft.com/en-us/windows/mixed-reality/gestures](https://docs.microsoft.com/en-us/windows/mixed-reality/gestures).
 
----
+--->
