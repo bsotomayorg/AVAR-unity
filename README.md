@@ -274,8 +274,8 @@ Currently, it is possible to select an object after targeting it with [Gaze](htt
 
 More information about Hololens Gestures: [https://docs.microsoft.com/en-us/windows/mixed-reality/gestures](https://docs.microsoft.com/en-us/windows/mixed-reality/gestures).
 
-**5.2. Experimental data**
+**5.2. User data**
 
-When linking the HoloLens to PC with USB, the experimental data can be found in the default Domumentary folder of HoloLens Device.
+When linking the HoloLens to PC with USB, the user data can be found in the default Domumentary folder of HoloLens Device.
 
 ---
