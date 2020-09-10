@@ -276,6 +276,6 @@ More information about Hololens Gestures: [https://docs.microsoft.com/en-us/wind
 
 **5.2. Experimental data**
 
-When link the HoloLens to PC with USB, the experimental data can be found in the default Domumentary folder of HoloLens Device.
+When linking the HoloLens to PC with USB, the experimental data can be found in the default Domumentary folder of HoloLens Device.
 
 ---
