@@ -265,3 +265,17 @@ After doing this, the Unity application will read a JSON from Pharo client and d
 <br/>
 
 ---
+
+### 5. User interactions
+
+**5.1. Gestures for interactions**
+
+Currently, it is possible to select an object after targeting it with [Gaze](https://docs.microsoft.com/en-us/windows/mixed-reality/gaze) and doing an [Air Tap](https://docs.microsoft.com/en-us/windows/mixed-reality/gestures#air-tap). After selecting, the object will follow the camera. Then, do a Air Tap again for set the new position of the object.
+
+More information about Hololens Gestures: [https://docs.microsoft.com/en-us/windows/mixed-reality/gestures](https://docs.microsoft.com/en-us/windows/mixed-reality/gestures).
+
+**5.2. Experimental data**
+
+When link the HoloLens to PC with USB, the experimental data can be found in the default Domumentary folder of HoloLens Device.
+
+---
