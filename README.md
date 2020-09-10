@@ -265,24 +265,3 @@ After doing this, the Unity application will read a JSON from Pharo client and d
 <br/>
 
 ---
-
-<### 5. User interactions
-
-**5.1. Keyboard shortcuts**
-
-In addition to write code, AVAR app allows the possibility to do different operations for execution and interface option.
-
-Current shortcut list :
-* <kbd>ALT</kbd>: Hide/Show the Virtual Panel.
-* <kbd>CTRL</kbd>+<kbd>D</kbd>: Evaluate the script and add as a new view/scene. It simulates the Pharo "Do it" execution.
-* <kbd>CTRL</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd>: Evaluate the script, erases all the previous views/scenes and adds the current one.
-* <kbd>CTRL</kbd>+<kbd>E</kbd>: Open the example list. Use the same hotkey or “ESC” to turn it off.
-* <kbd>CTRL</kbd>+<kbd>TAB</kbd>: Switch the main panel between code input panel and console panel.
-
-**5.2. Gestures for interactions**
-
-Currently, it is possible to select an object after targeting it with [Gaze](https://docs.microsoft.com/en-us/windows/mixed-reality/gaze) and doing an [Air Tap](https://docs.microsoft.com/en-us/windows/mixed-reality/gestures#air-tap). After selecting, the object will follow the camera. Then, do a Air Tap again for set the new position of the object.
-
-More information about Hololens Gestures: [https://docs.microsoft.com/en-us/windows/mixed-reality/gestures](https://docs.microsoft.com/en-us/windows/mixed-reality/gestures).
-
---->
