@@ -65,7 +65,19 @@ On Unity, click on "Edit" tab, and select "Project Settings". Then, select tab "
 
 ![Debug console showing the Server Mode status](./readme_figs/addTxt.PNG)
   
+(2a) Open the folder sharing the same name with your .sln document
 
+![Debug console showing the Server Mode status](./readme_figs/foldername.png)
+
+(2b) Open "Package.appxmanifest" with Notepad.
+
+(2c) Find <Capabilities> and add "<uap:Capability Name="documentsLibrary" />"  between it and </Capabilities>.
+
+![Debug console showing the Server Mode status](./readme_figs/openWithNotepad.png)
+
+(2d) Save by Ctrl+S, now your project can interact with the default Document folder in Hololens(Or Pc-UWP)
+
+(3) Deploy to mixed reality device following the example: [https://docs.microsoft.com/zh-cn//windows/mixed-reality/holograms-100](https://docs.microsoft.com/zh-cn//windows/mixed-reality/holograms-100)
 
 <br/>
 
