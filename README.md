@@ -1,4 +1,4 @@
-# AVAR: Agile Visualizations in Immersive Augmented Reality
+﻿# AVAR: Agile Visualizations in Immersive Augmented Reality
 
 ## Contents
 1. [Install Unity and Visual Studio for Mixed Reality Development](#1-install-unity-and-visual-studio-for-mixed-reality-development)
@@ -42,6 +42,12 @@ On Unity, click on "Edit" tab, and select "Project Settings". Then, select tab "
 + WodenObj
 + Roassal2Obj
 + Edge
+
+**1.5. Change the settings and then build the Unity project
+
+(1) In Unity, File==>Build Settings： Change the platform to Universal Windows Platform (UWP) and activate VR support.
+(2) In Unity, File==>Build Settings==>Player Settings==>Publish Settings： Activate "InternetClient" and "InternetClientServer".
+  
 
 
 <br/>
