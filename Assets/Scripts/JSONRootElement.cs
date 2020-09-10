@@ -6,4 +6,5 @@ public class JSONRootElement {
     public JSONElement[] elements;
     public JSONElement[] RTelements;
     public string value;
+    public JSONError errormsg;
 }

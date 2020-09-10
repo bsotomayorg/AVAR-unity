@@ -4,11 +4,11 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - TextPanel
   - TextCanvas
+  - TextPanel
   - WodenObj
-  - Edge
   - Roassal2Obj
+  - Edge
   layers:
   - Default
   - TransparentFX
@@ -18,7 +18,7 @@ TagManager:
   - UI
   - 
   - 
-  - 
+  - PostProcessing
   - 
   - 
   - 

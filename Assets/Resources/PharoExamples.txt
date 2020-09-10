@@ -1,0 +1,271 @@
+This is for examples
+Exp: Cylinder
+v := RWView new.
+els:= RWCylinder new color: Color blue; elementsOn: (1 to: 2).
+v addAll: els.
+RWXZGridLayout on: els.
+v run.
+
+
+Exp: Grid Layout of Cubes:
+v := RWView new.
+els := RWCube new color: [:e | Color random]; elementsOn: (1 to: 10).
+v addAll: els.
+RWXZGridLayout on: els.
+v run.
+
+
+Exp: Edges example. Fully connected network:
+v := RWView new.
+len := 9.
+els := RWUVSphere blue elementsOn: (1 to: len).
+v addAll: els.
+RWXZGridLayout on: els.
+1 to: len do: [ :i |
+1 to: len do: [ :j |
+i ~~ j ifTrue: [ v add: (RWLine yellow edgeFrom: (els at: i) to: (els at: j))]
+].
+].
+v run.
+
+
+Exp: Simple Tree
+v := RWView new.
+objects := { 1 . 2 . 3 . 4 . 5 . 6 . 7 . 8 }.
+associations := { 1 -> 2 . 2 -> 3 . 2 -> 4 . 3 -> 5 . 3 -> 6 . 4 -> 7 . 4 -> 8 }.
+
+elements := RWUVSphere green elementsOn: objects.
+v addAll: elements.
+
+assocWithElements := associations collect: [ :a | (v elementFromModel: a key) -> (v elementFromModel: a value)].
+v addAll: (RWEdge linesFor: assocWithElements).
+RWGridTreeLayout on: v elements.
+v run.
+
+
+Exp: Bars
+v := RWView new.
+shape := RWCube white height: [ :cls | cls numberOfMethods sqrt + 0.1 ].
+elements := shape elementsOn: Collection withAllSubclasses.
+
+v addAll: elements.
+
+RWXZGridLayout on: elements.
+RWAlign elements: elements abovePoint: WMVector3F zero.
+v run.
+
+
+Exp: Download Ebola dataset and showing it into a 2D scatter plot
+tab := RTTabTable new input: 'http://agilevisualization.com/Ebola2.csv' asUrl retrieveContents usingDelimiter: $,.
+tab removeFirstRow.
+tab replaceEmptyValuesWith: '0' inColumns: #(10 11).
+tab convertColumnsAsInteger: #(10 11).
+tab convertColumnsAsDateAndTime: #(3 4).
+data := tab values reversed.
+
+"Charting the data"
+b := RTGrapher new.
+
+ds := RTData new.
+ds interaction fixedPopupText: [ :row | row value at: 12 ]. 
+ds dotShape ellipse 
+color: (Color blue alpha: 0.3);
+size: [ :row  | (row at: 11) / 5 ].
+ds points: data.
+ds connectColor: Color blue.
+ds y: [ :r | r at: 10 ].
+ds highlightIf: [ :row | (row at: 10) > 100 ] using: [ :row | row third year ].
+b add: ds. 
+
+b axisX noLabel; numberOfTicks: tab values size.
+b axisY noDecimal.
+
+b open.
+v := b view.
+v run.
+
+
+
+Exp: "2D BoxPlot Example"
+	r := Random new.
+	createList := [ :size :d1 :d2 | (1 to: size) collect: [ :i | d1 + (r next * (d2 - d1)) ] ].
+	b := RTGrapher new.
+	(1 to: 10)
+		do: [ :i | 
+			| ds |
+			ds := RTBoxPlotDataSet new.
+			ds points: (createList value: 20 value: 0 value: 20).
+			b add: ds ].
+	b open.
+	v := b view.
+	v run.
+
+Exp: "2D Box PLot Example"
+	b := RTGrapher new.
+	b extent: 400 @ 200.
+	RTShape withAllSubclasses
+		do: [ :cls | 
+			ds := RTBoxPlotDataSet new.
+			ds points: (cls rtmethods collect: #numberOfLinesOfCode).
+			b add: ds ].
+
+	b open.
+	v := b view.
+	v run.
+
+Exp: "2D BoxesFlLyaout"
+	view := RTView new.
+	coll := #(50 60 80 100 85 10 35).
+	n := RTMultiLinearColorForIdentity new objects: coll.
+	coll
+		do: [ :r | 
+			view
+				add:
+					((RTBox new
+						color: [ :value | n rtValue: r ];
+						size: r) elementOn: r) ].
+	RTFlowLayout new applyOn: view elements.
+	view elements do: [ :e | e @ (RTPopup text: [ :el | el ]) ].
+	b := RTAxisAdaptedBuilder new.
+	b view: view.
+	b margin: 20.
+	b objects: view elements.
+	b build.
+	b open.
+	v := b view.
+	v run.
+
+Exp: "2D Grapher Bar Chart:"
+	data := (1 to: 20) collect: [ :v | 10 atRandom - 5 ].
+	b := RTGrapher new.
+	b extent: 300 @ 200.
+	ds := RTData new.
+	ds interaction popup.
+	ds points: data.
+	ds barShape
+		width: 8;
+		color: (Color green alpha: 0.3);
+		if: [ :value | value < 0 ] fillColor: (Color red alpha: 0.3).
+	b add: ds.
+	b build.
+	b open.
+	v := b view.
+	v run.
+
+Exp: "2D Radar chart:"
+	b := RTKiviatBuilder new.
+	b objects: RTAbstractCircleLayout withAllSubclasses.
+	n := RTMultiLinearColorForIdentity new objects: b objects.
+	b shape circle
+		color: [ :value | n rtValue: value kiviatNode named ];
+		size: 10.
+	b addMetric: #numberOfLinesOfCode.
+	b addMetric: #numberOfMethods.
+	b addMetric: #numberOfVariables.
+	b build.
+	b open.
+	v := b view.
+	v run.
+
+Exp: "2D Linked node diagram:"
+	nbOfNodes := 40.
+	nbOfRandomEdges := 40.
+	nodes := 1 to: nbOfNodes.
+	edges := (1 to: nbOfRandomEdges)
+		collect: [ :notUsed | nodes atRandom -> nodes atRandom ].
+
+	b := RTMondrian new.
+	b shape circle color: (Color black alpha: 0.5).
+	b nodes: nodes.
+	b shape line color: (Color gray alpha: 0.3).
+	b edges source: edges connectFrom: #key to: #value.
+	b layout force.
+	b open.
+
+	v := b view.
+	v run.
+
+Exp: "2D TreeMap:"
+	b := RTTreeMapBuilder new.
+	b shape
+		if: #even fillColor: Color lightGray;
+		if: #odd fillColor: Color purple.
+	b
+		extent: 400 @ 400;
+		explore: 1
+			using: [ :n | 
+			n < 8
+				ifTrue: [ Array with: n + 1 with: n + 2 ]
+				ifFalse: [ #() ] ];
+		weight: [ :n | n ].
+	b open.
+	v := b view.
+	v run.
+
+Exp: "2D Palallel Coordinates:"
+	maxValue := 40.
+	spaceBetweenLine := 50.
+	lineHeight := 150.
+	numberOfColumns := 10.
+	numberOfLines := 100.
+
+
+	values := OrderedCollection new.
+	numberOfLines
+		timesRepeat: [ t := OrderedCollection new.
+			numberOfColumns timesRepeat: [ t add: maxValue atRandom ].
+			values add: t ].
+	v := RTView new.
+	setOfElements := OrderedCollection new.
+	1 to: numberOfColumns do: [ :i | 
+		t := OrderedCollection new.
+		values
+			do: [ :setOfValues | 
+				e := (RTEllipse new color: (Color red alpha: 0.3)) element.
+				t add: e.
+				e
+					translateTo:
+						(i * (spaceBetweenLine - 1))
+							@ ((setOfValues at: i) * lineHeight / maxValue) asFloat.
+				v add: e ].
+		setOfElements add: t ].
+	2 to: numberOfColumns do: [ :column | 
+		t := OrderedCollection new.
+		values
+			doWithIndex: [ :setOfValues :index | 
+				line := (RTLine new color: (Color red alpha: 0.3))
+					edgeFrom: ((setOfElements at: column - 1) at: index)
+					to: ((setOfElements at: column) at: index).
+				v add: line ] ].
+	v run.
+
+Exp: "2D Tree Layout":
+	view := RTView new.
+	view
+		addAll: (RTBox elementsOn: Collection withAllSubclasses) @ RTDraggable.
+	RTEdgeBuilder new
+		view: view;
+		objects: Collection withAllSubclasses;
+		connectFrom: #superclass to: #yourself.
+	RTTreeLayout on: view elements edges: view edges.
+	view @ RTDraggableView.
+	view edges do: [ :e | e trachelShape pushBack ].
+	view run.
+
+Exp: "2D Colorized":
+	classes := RTObject withAllSubclasses.
+	v := RTView new.
+	v @ RTDraggableView.
+	n := RTMultiLinearColorForIdentity new objects: classes.
+	shape := RTEllipse new
+		size: #numberOfMethods;
+		color: n.
+	es := shape elementsOn: classes.
+	es
+		@
+			(RTMenuActivable new
+				action: #inspect;
+				item: 'browse class' action: [ :e | e model browse ]).
+	v addAll: es.
+	RTFlowLayout on: es.
+	v run.

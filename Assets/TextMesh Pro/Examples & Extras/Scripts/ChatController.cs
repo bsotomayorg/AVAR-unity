@@ -31,8 +31,8 @@ public class ChatController : MonoBehaviour {
         TMP_ChatInput.text = string.Empty;
 
         var timeNow = System.DateTime.Now;
-
-        TMP_ChatOutput.text += "[<#FFFF80>" + timeNow.Hour.ToString("d2") + ":" + timeNow.Minute.ToString("d2") + ":" + timeNow.Second.ToString("d2") + "</color>] " + newText + "\n";
+        //TMP_ChatOutput.text += "["+timeNow.ToString()+"] "+newText+"\n";
+        TMP_ChatOutput.text += "[<#FFFF80>" +timeNow.Day+"/"+timeNow.Month+"/"+timeNow.Year+" "+ timeNow.Hour.ToString("d2") + ":" + timeNow.Minute.ToString("d2") + ":" + timeNow.Second.ToString("d2") + "</color>] " + newText + "\n";
 
         TMP_ChatInput.ActivateInputField();
 

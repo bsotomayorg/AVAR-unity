@@ -36,10 +36,10 @@ public class WorldCursor : MonoBehaviour
 		{
 			GameObject oldHit = hit;
 			hit = hitInfo.collider.gameObject;
-			// If the raycast hit a hologram...
-			// Display the cursor mesh.
-			meshRenderer.enabled = true;
-
+            // If the raycast hit a hologram...
+            // Display the cursor mesh.
+            //meshRenderer.enabled = true;
+            meshRenderer.material.color =new Color(0.4f,0,0);
 			// Move the cursor to the point where the raycast hit.
 			this.transform.position = hitInfo.point;
 
@@ -51,9 +51,13 @@ public class WorldCursor : MonoBehaviour
 		}
 		else
 		{
-			// If the raycast did not hit a hologram, hide the cursor mesh.
-			meshRenderer.enabled = false;
-			hit = null;
+            meshRenderer.material.color = Color.green+Color.blue;
+            this.transform.position = headPosition + gazeDirection*1f;
+            this.transform.rotation = Quaternion.FromToRotation(Vector3.up,gazeDirection);
+            this.transform.localScale = Vector3.one;
+            // If the raycast did not hit a hologram, hide the cursor mesh.
+            //meshRenderer.enabled = false;
+            hit = null;
 		}
 	}
 

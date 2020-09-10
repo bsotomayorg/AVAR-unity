@@ -12,4 +12,5 @@ public class JSONElement {
 
     public string from_id;
     public string to_id;
+    public string model;
 }

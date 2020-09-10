@@ -69,26 +69,32 @@ public class AVAR_Element
                 if (element.shape.text != "nil") {
                     Debug.Log("A label was found!!: '" + element.shape.text + "'");
                     
-                    var c = world.GetComponent<Canvas>();
-                    var text_scaling = new Vector2(2,1.5f);
-                    //
+                    //var c = world.GetComponent<Canvas>();
+                    //var text_scaling = new Vector2(2, 1.5f); //new Vector2(1, 1);// 
+                    var text_scaling = new Vector2(element.shape.extent[0], element.shape.extent[1]); //new Vector2(1, 1);// 
+
                     this.go = new GameObject("RTlabel", typeof(RectTransform));
-                    this.transformParent(c.gameObject);
+                    this.go.GetComponent<RectTransform>().sizeDelta = new Vector2(
+                        element.shape.extent[0], element.shape.extent[1]);
+                    this.go.GetComponent<RectTransform>().localScale = new Vector3(
+                        0.0248f,
+                        0.0248f,
+                        0.001f);
+                    this.transformParent(world.gameObject);
                     
                     RectTransform rtgo = this.go.GetComponent<RectTransform>();
-                    rtgo.sizeDelta = text_scaling;
                     rtgo.anchoredPosition = new Vector2(0, 0);
 
-                    
                     GameObject label = new GameObject("\"" + element.shape.text + "\"", typeof(RectTransform));
                     label.transform.SetParent(this.go.transform);
                     RectTransform rt = label.GetComponent<RectTransform>();
-                    rt.sizeDelta = text_scaling;
+                    
                     rt.anchoredPosition = new Vector2(0, 0); // by default
                     this.go.AddComponent<Text>().text = element.shape.text;
                     this.go.GetComponent<Text>().font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
                     this.go.GetComponent<Text>().fontSize = 1;
-                    
+                    this.go.GetComponent<Text>().alignment = TextAnchor.MiddleCenter;
+
                 }
                 else {
                     this.go = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -104,15 +110,15 @@ public class AVAR_Element
         }
         if (this.type == "RTlabel") {
             this.go.GetComponentInChildren<RectTransform>().position = position;
-            this.go.GetComponentInChildren<RectTransform>().localScale = scale;
+            //this.go.GetComponentInChildren<RectTransform>().localScale = scale;
         } else {
             this.go.GetComponent<Renderer>().material.color = col;
             this.go.GetComponent<Renderer>().material.shader = Shader.Find("Transparent/Diffuse");
-
+            this.go.transform.localScale = scale;
         }
 
         this.go.transform.position = position;
-        this.go.transform.localScale = scale;
+        
 
         if (element.interactions != null)
             Debug.Log("element.interactions (number) = " + element.interactions.Count);
