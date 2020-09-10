@@ -71,7 +71,7 @@ On Unity, click on "Edit" tab, and select "Project Settings". Then, select tab "
 
 (2b) Open "Package.appxmanifest" with Notepad.
 
-(2c) Find (<Capabilities>) and add "<uap:Capability Name="documentsLibrary" />"  between it and (</Capabilities>).
+(2c) Find  <Capabilities>  and add "<uap:Capability Name="documentsLibrary" />"  between it and  </Capabilities> .
 
 ![Debug console showing the Server Mode status](./readme_figs/openWithNotepad.png)
 
